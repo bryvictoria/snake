@@ -163,7 +163,8 @@ export default class StarSearch{
                 newNodes.push(lowestNeighbor)
                 this.path.push(lowestNeighbor)
 
-
+                this.obstacles.unshift(lowestNeighbor);
+                this.obstacles.pop();
 
                 this.markings.push([lowestNeighbor[0],lowestNeighbor[1],this.greenScale(this.ctr++)])
             }
