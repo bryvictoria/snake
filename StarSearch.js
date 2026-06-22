@@ -24,8 +24,6 @@ export default class StarSearch{
         this.resetTiles()
 
 
-        
-
     }
 
     draw(){
@@ -89,6 +87,8 @@ export default class StarSearch{
             this.searchNodes();
             
         }
+
+        console.log('goal reached:'+this.hasFoundGoal)
         console.log('path:'+JSON.stringify(this.path))
         return this.path
     }
@@ -128,9 +128,18 @@ export default class StarSearch{
     computeManhattanDistance(start,end){
         return Math.abs(end[0]-start[0]) + Math.abs(end[1]-start[1])
     }
+
+    computeDistance = (a, b) => {
+        const dx = a[0] - b[0];
+        const dy = a[1] - b[1];
+        return Math.sqrt(dx * dx + dy * dy);
+    };
+
+
     isVisited(point){
         return this.visitedNodes.includes(JSON.stringify(point))
     }
+
     searchNodes(){
         let newNodes = []
         const len = this.nodes.length
@@ -145,6 +154,7 @@ export default class StarSearch{
             let lowestGh = 999;
             let lowestNeighbor = null;
 
+            let neighborsF = []
             for(let j in neighborNodes){
 
                 this.visitedNodes.push(JSON.stringify(neighborNodes[i]))
@@ -152,13 +162,28 @@ export default class StarSearch{
                     this.hasFoundGoal = true;
                 
                 let gh = this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.start) + (this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.goal) * (this.nudge?1.0001:1))
-                
-                if(gh < lowestGh){
-                    lowestGh = gh
-                    lowestNeighbor = neighborNodes[j]
-                }
+                neighborsF[j] = gh
+                //console.log(i,j,node,neighborNodes[j][0],neighborNodes[j][1],gh)
+
             }
 
+            let minIndex = neighborsF.indexOf(Math.min(...neighborsF));
+
+            
+            const isTie = neighborsF.every(v => v === neighborsF[0]);
+
+            if(isTie){
+                neighborsF = []
+                for(let j in neighborNodes){
+
+                    let gh = this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.start) + (this.computeDistance([neighborNodes[j][0],neighborNodes[j][1]],this.goal) * (this.nudge?1.0001:1))
+                    neighborsF[j] = gh
+
+                }
+                minIndex = neighborsF.indexOf(Math.min(...neighborsF));
+            }
+
+            lowestNeighbor = neighborNodes[minIndex]
             if(lowestNeighbor != null){
                 newNodes.push(lowestNeighbor)
                 this.path.push(lowestNeighbor)

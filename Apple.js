@@ -16,6 +16,7 @@ export default class Apple extends GameObject{
 
     }
     draw(){  
+        
         this.ctx.beginPath();
         this.ctx.fillStyle = this.color
         this.ctx.fillRect(this.position[0], this.position[1], this.size, this.size);

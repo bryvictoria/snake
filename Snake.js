@@ -31,12 +31,20 @@ export default class Snake{
         this.ctx = ctx
     
         this.init()
+        //this.preinit([[20,52],[24,52],[24,56],[28,56],[28,60],[32,60],[32,64],[36,64],[36,68],[40,68],[40,72],[44,72],[44,76],[48,76],[48,80],[48,84],[48,88],[48,92],[48,96],[48,100],[48,104],[52,104],[56,104],[60,104],[64,104],[68,104],[72,104],[76,104],[80,104],[84,104],[88,104],[92,104],[92,100],[92,96],[92,92],[92,88],[92,84],[92,80],[92,80]])
     }
-
+    preinit(points){
+        this.chainCount = 0
+        for(let  i = 0; i < points.length ; i++) {
+            this.chain.push(new SnakeChain(this.ctx, points[i][0], points[i][1]));
+            this.chainCount++
+        }
+        
+    }
     init(){
         this.chainCount = 0
+
         for(let  i = this.initCount -1; i >= 0 ; i--) {
-            
             this.chain.push(new SnakeChain(this.ctx, i * this.size ,4));
             this.chainCount++
         }

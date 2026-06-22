@@ -28,9 +28,10 @@ function main(){
     
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
-
+  //  apple.position = [68,84]
     snake.setPath(starSearch.generatePath())
-    
+  //  console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
+    starSearch.generatePath()
 
     showStatus()
     
@@ -68,7 +69,8 @@ function startMoving(){
     }
     status.isMoving = true
     showStatus()
-    interval = setInterval(tick,60)
+    //tick()
+    interval = setInterval(tick,10)
     
 }
 
