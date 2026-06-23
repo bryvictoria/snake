@@ -1,6 +1,7 @@
 import Snake, { DIRECTIONS }  from './Snake.js'
 import Apple from './Apple.js'
 import StarSearch from './StarSearch.js'
+import DepthFirstSearch from './DepthFirstSearch.js'
 
 
 const gameObjects = []
@@ -12,6 +13,7 @@ let lastTime=0
 const snake = new Snake(ctx)
 const apple = new Apple(ctx)
 const starSearch = new StarSearch(ctx,snake.chain,apple)
+const dfSearch = new DepthFirstSearch(ctx,snake.chain,apple)
 const status = {
     score:0,
     status:'playing',
@@ -32,8 +34,9 @@ function main(){
     apple.assignPosition(snake.chain.map(i => i.position))
 //    apple.position = [92,80]//[68,84]
     snake.setPath(starSearch.generatePath())
+    //snake.setPath(dfSearch.generatePath())
     console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
-    starSearch.generatePath()
+    //starSearch.generatePath()
 
     showStatus()
     
@@ -71,7 +74,8 @@ function startMoving(){
     }
     status.isMoving = true
     showStatus()
-    interval = setInterval(tick,10)
+    //tick()
+    interval = setInterval(tick,9)
     
 }
 
@@ -126,7 +130,7 @@ function setSurvivalPath(){
     starSearch.nudge = false
     starSearch.setTarget(snake.chain[snake.chain.length - 1])
     starSearch.setChain(snake.chain)
-    survivalPath = structuredClone(starSearch.generatePath())
+    survivalPath = structuredClone(dfSearch.generatePath())
     console.log('generated:',survivalPath.length,survivalPath)
 }
 function gameOver(){
@@ -162,6 +166,7 @@ function tick() {
   }
   drawGameObjects()
   starSearch.draw()
+  dfSearch.draw()
 }
 
 function updateGameObjects(){
