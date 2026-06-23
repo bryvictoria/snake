@@ -4,7 +4,7 @@ export default class StarSearch{
     board = {width:100,height:100,tileSize:4}
 
     chain = null
-    target = null
+    _target = null
     nodes = null
     visitedNodes = []
     goal = null
@@ -19,7 +19,7 @@ export default class StarSearch{
     constructor(ctx,chain,target){
         this.ctx = ctx
         this.chain = chain
-        this.target = target
+        this._target = target
 
         this.resetTiles()
 
@@ -28,7 +28,7 @@ export default class StarSearch{
 
     draw(){
         const size = this.board.tileSize;
-
+/*
         this.ctx.beginPath();
         this.ctx.strokeStyle = "lightgray";
         this.ctx.lineWidth = 1;
@@ -38,15 +38,13 @@ export default class StarSearch{
                 const startX = x * size;
                 const startY = y * size;
 
-                // Left border
                 this.ctx.moveTo(startX, startY);
                 this.ctx.lineTo(startX, startY + size);
 
-                // Bottom border
                 this.ctx.lineTo(startX + size, startY + size);
             }
         }
-
+*/
         this.ctx.stroke();
         for(let mark of this.markings){
             this.colorTile(...mark)
@@ -63,15 +61,25 @@ export default class StarSearch{
         }
     }
 
-    hasFoundGoal = false
+    _goalFound = false
+
+    isGoalFound(){
+        return this._goalFound
+    }
+    setTarget(target){
+        this._target = target
+    }
+    setChain(chain){
+        this.chain = chain
+    }
     generatePath(){
         this.resetTiles()
 
         const [head,...body] = this.chain
         this.start = head.position
         this.obstacles = this.chain.map(i => i.position)
-        this.goal = this.target.position
-        this.hasFoundGoal = false
+        this.goal = this._target.position
+        this._goalFound = false
         
         this.nodes = [this.start]
         this.visitedNodes = []
@@ -79,31 +87,36 @@ export default class StarSearch{
         this.markings = [];
         this.ctr = 0
 
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+        //console.log('goal:'+JSON.stringify(this.goal))
+        //console.log('head:'+JSON.stringify(this.start))
+        //console.log('body:'+JSON.stringify(this.obstacles))
         
-        while(this.nodes.length > 0 && !this.hasFoundGoal){
+        while(this.nodes.length > 0 && !this._goalFound){
             this.searchNodes();
             
         }
 
-        console.log('goal reached:'+this.hasFoundGoal)
-        console.log('path:'+JSON.stringify(this.path))
+        //console.log('goal reached:'+this._goalFound)
+        //console.log('path:'+JSON.stringify(this.path))
         return this.path
     }
 
+
     colorTile(x,y,color){
 
+        if(this._goalFound){
+            color = 'green'
+        }else{
+            color = 'red'
+        }
         this.ctx.beginPath()
         this.ctx.fillStyle = color
         this.ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
         this.ctx.stroke()
-
         
     }
-    collides(pos,targetPos){
-        return pos[0] == targetPos[0] && pos[1] == targetPos[1]
+    collides(pos,_targetPos){
+        return pos[0] == _targetPos[0] && pos[1] == _targetPos[1]
     }
     isPassable(node){
         if(
@@ -159,7 +172,7 @@ export default class StarSearch{
 
                 this.visitedNodes.push(JSON.stringify(neighborNodes[i]))
                 if(this.collides(neighborNodes[j],this.goal))
-                    this.hasFoundGoal = true;
+                    this._goalFound = true;
                 
                 let gh = this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.start) + (this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.goal) * (this.nudge?1.0001:1))
                 neighborsF[j] = gh

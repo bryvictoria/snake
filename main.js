@@ -19,6 +19,8 @@ const status = {
     isOver:false
 }
 let interval = null;
+let isSurvivalMode = false;
+let survivalPath = []
 function main(){
     
     
@@ -28,9 +30,9 @@ function main(){
     
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
-  //  apple.position = [68,84]
+//    apple.position = [92,80]//[68,84]
     snake.setPath(starSearch.generatePath())
-  //  console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
+    console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
     starSearch.generatePath()
 
     showStatus()
@@ -69,7 +71,6 @@ function startMoving(){
     }
     status.isMoving = true
     showStatus()
-    //tick()
     interval = setInterval(tick,10)
     
 }
@@ -88,16 +89,46 @@ function showStatus(){
 
 
 function scored(){
+
+    isSurvivalMode = false;
     snake.addChain()
     apple.assignPosition(snake.chain.map(i => i.position))
-    console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
+    
     snake.setPath(starSearch.generatePath())
+    
+    if(!starSearch.isGoalFound()){
+        console.log('generating survival path')
+        
+        setSurvivalPath()
+
+        doSurvive()
+
+    }
     
     status.score++
     showStatus()
     
 }
-
+function doSurvive(){
+    let steps = Math.floor(Math.random() * 4) + 2
+    
+    const stepsPath = survivalPath.splice(0, steps);
+    if(stepsPath.length){
+        snake.setPath(stepsPath)
+        isSurvivalMode = true;
+        console.log('survival mode ',steps,stepsPath)
+    } else {
+        console.log('tail reached. reset')
+        setSurvivalPath()
+    }
+}
+function setSurvivalPath(){
+    starSearch.nudge = false
+    starSearch.setTarget(snake.chain[snake.chain.length - 1])
+    starSearch.setChain(snake.chain)
+    survivalPath = structuredClone(starSearch.generatePath())
+    console.log('generated:',survivalPath.length,survivalPath)
+}
 function gameOver(){
     status.status = "Game Over"
     status.isOver = true
@@ -118,6 +149,17 @@ function tick() {
     gameOver()
   }
   
+  if(isSurvivalMode && snake.path.length == 0){
+    console.log('survival steps completed checking if apple reachable')
+    starSearch.setTarget(apple)
+    starSearch.setChain(snake.chain)
+    starSearch.nudge = true
+    let newpath = starSearch.generatePath()
+    if(starSearch.isGoalFound())
+        snake.setPath(newpath)
+    else
+        doSurvive()
+  }
   drawGameObjects()
   starSearch.draw()
 }
