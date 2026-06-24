@@ -87,17 +87,17 @@ export default class StarSearch{
         this.markings = [];
         this.ctr = 0
 
-        //console.log('goal:'+JSON.stringify(this.goal))
-        //console.log('head:'+JSON.stringify(this.start))
-        //console.log('body:'+JSON.stringify(this.obstacles))
+        ////console.log('goal:'+JSON.stringify(this.goal))
+        ////console.log('head:'+JSON.stringify(this.start))
+        ////console.log('body:'+JSON.stringify(this.obstacles))
         
         while(this.nodes.length > 0 && !this._goalFound){
             this.searchNodes();
             
         }
 
-        //console.log('goal reached:'+this._goalFound)
-        //console.log('path:'+JSON.stringify(this.path))
+        ////console.log('goal reached:'+this._goalFound)
+        ////console.log('path:'+JSON.stringify(this.path))
         return this.path
     }
 
@@ -176,7 +176,7 @@ export default class StarSearch{
                 
                 let gh = this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.start) + (this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.goal) * (this.nudge?1.0001:1))
                 neighborsF[j] = gh
-                //console.log(i,j,node,neighborNodes[j][0],neighborNodes[j][1],gh)
+                ////console.log(i,j,node,neighborNodes[j][0],neighborNodes[j][1],gh)
 
             }
 

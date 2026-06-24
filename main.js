@@ -32,12 +32,11 @@ function main(){
     
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
-//    apple.position = [92,80]//[68,84]
+    
     snake.setPath(starSearch.generatePath())
     //snake.setPath(dfSearch.generatePath())
-    console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
-    //starSearch.generatePath()
-
+    //console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
+    
     showStatus()
     
     startMoving()
@@ -75,7 +74,7 @@ function startMoving(){
     status.isMoving = true
     showStatus()
     //tick()
-    interval = setInterval(tick,9)
+    interval = setInterval(tick,3)
     
 }
 
@@ -101,7 +100,7 @@ function scored(){
     snake.setPath(starSearch.generatePath())
     
     if(!starSearch.isGoalFound()){
-        console.log('generating survival path')
+        //console.log('generating survival path')
         
         setSurvivalPath()
 
@@ -120,9 +119,9 @@ function doSurvive(){
     if(stepsPath.length){
         snake.setPath(stepsPath)
         isSurvivalMode = true;
-        console.log('survival mode ',steps,stepsPath)
+        //console.log('survival mode ',steps,stepsPath)
     } else {
-        console.log('tail reached. reset')
+        //console.log('tail reached. reset')
         setSurvivalPath()
     }
 }
@@ -131,7 +130,7 @@ function setSurvivalPath(){
     starSearch.setTarget(snake.chain[snake.chain.length - 1])
     starSearch.setChain(snake.chain)
     survivalPath = structuredClone(dfSearch.generatePath())
-    console.log('generated:',survivalPath.length,survivalPath)
+    //console.log('generated:',survivalPath.length,survivalPath)
 }
 function gameOver(){
     status.status = "Game Over"
@@ -154,7 +153,7 @@ function tick() {
   }
   
   if(isSurvivalMode && snake.path.length == 0){
-    console.log('survival steps completed checking if apple reachable')
+
     starSearch.setTarget(apple)
     starSearch.setChain(snake.chain)
     starSearch.nudge = true
@@ -165,8 +164,8 @@ function tick() {
         doSurvive()
   }
   drawGameObjects()
-  starSearch.draw()
-  dfSearch.draw()
+  //starSearch.draw()
+  //dfSearch.draw()
 }
 
 function updateGameObjects(){

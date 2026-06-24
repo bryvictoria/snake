@@ -8,7 +8,7 @@ export default class Apple extends GameObject{
         let randomPos = null 
         let excludePositionStr = excludePositions.map(i => JSON.stringify(i))
         do{
-            randomPos = [4 * Math.floor(Math.random() * 40),4 * Math.floor(Math.random() * 40)]
+            randomPos = [4 * Math.floor(Math.random() * 100),4 * Math.floor(Math.random() * 100)]
         } while(excludePositionStr.includes(JSON.stringify(randomPos)));
         this.position = randomPos
     }
