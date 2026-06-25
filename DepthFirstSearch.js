@@ -15,7 +15,7 @@ export default class DepthFirstSearch{
     tiles = []
     markings = []
     ctr  = 0
-    MAX_ITERATIONS = 10000
+    MAX_ITERATIONS = 100
     allDirections = [];
     constructor(ctx,chain,target){
         this.ctx = ctx
@@ -42,7 +42,7 @@ export default class DepthFirstSearch{
         }
 
         for(let mark of this.obstacles){
-            this.colorTile(...mark)
+            this.colorTile(...mark,'red')
         }
     }
 
@@ -225,8 +225,7 @@ export default class DepthFirstSearch{
                 newNodes = [firstNeighbor]
                 this.path.push(firstNeighbor)
 
-                this.obstacles.unshift(firstNeighbor);
-                this.obstacles.pop();
+                
 
                 this.markings.push([firstNeighbor[0],firstNeighbor[1],this.greenScale(this.ctr++)])
                 this.depth++
@@ -238,6 +237,9 @@ export default class DepthFirstSearch{
                     this.depth--
                     this.neighbors.pop()
                     this.path.pop()
+
+                    
+
                     let poppedNode = this.path[this.path.length-1]
                     newNodes = [poppedNode]
                     if(poppedNode)
@@ -245,11 +247,22 @@ export default class DepthFirstSearch{
                     isBacktrack = true
                 }
             }
+            this.setObstacle()
             //console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(neighborNodes),JSON.stringify(this.path),'==>',JSON.stringify(newNodes))
+            console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(this.path),JSON.stringify(this.obstacle))
+        
         }
         
         this.nodes = newNodes
         
+    }
+    setObstacle(){
+        this.obstacles = [];
+        if(this.path.length >= this.chain.length){
+            this.obstacles = this.path.slice(this.path.length - this.chain.length,this.path.length)
+        }else{
+            this.obstacles = [...this.path,...this.chain.map(i=>i.position).slice(0,this.chain.length-this.path.length)]
+        }
     }
     greenScale(i, totalSteps = 20) {
         const maxStep = totalSteps - 1;

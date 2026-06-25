@@ -74,7 +74,7 @@ function startMoving(){
     status.isMoving = true
     showStatus()
     //tick()
-    interval = setInterval(tick,3)
+    interval = setInterval(tick,10)
     
 }
 
@@ -141,8 +141,6 @@ function gameOver(){
 
 function tick() {
 
-  
-  
   if(snake.headCollidesWith(apple.position)){
     scored()
   }else{
