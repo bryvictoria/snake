@@ -15,7 +15,7 @@ export default class DepthFirstSearch{
     tiles = []
     markings = []
     ctr  = 0
-    MAX_ITERATIONS = 100
+    MAX_ITERATIONS = 1000
     allDirections = [];
     constructor(ctx,chain,target){
         this.ctx = ctx
@@ -106,32 +106,26 @@ export default class DepthFirstSearch{
         this.markings = [];
         this.ctr = 0
 
-        //console.log('goal:'+JSON.stringify(this.goal))
-        //console.log('head:'+JSON.stringify(this.start))
-        //console.log('body:'+JSON.stringify(this.obstacles))
+        console.log('DFS')
+        console.log('goal:'+JSON.stringify(this.goal))
+        console.log('head:'+JSON.stringify(this.start))
+        console.log('body:'+JSON.stringify(this.obstacles))
         
-        while(this.nodes.length > 0 && !this._goalFound){
-            this.searchNodes();
-            
+        try{
+            while(this.nodes.length > 0 && !this._goalFound){
+                this.searchNodes()
+                
+            }
+        } catch(e){
+            console.log(e.message)
         }
 
-        //console.log('goal reached:'+this._goalFound)
-        //console.log('path:'+this.path.length+JSON.stringify(this.path))
+        console.log('goal reached:'+this._goalFound)
+        console.log('path:'+this.path.length+JSON.stringify(this.path))
 
-        //console.log(this.validatePath(this.path))
         return this.path
     }
 
-    validatePath(path) {
-        const errors = [];
-        for (let i = 1; i < path.length; i++) {
-            const [x1,y1] = path[i-1], [x2,y2] = path[i];
-            const dx = Math.abs(x2-x1), dy = Math.abs(y2-y1);
-            if (dx > 0 && dy > 0) errors.push(`Index ${i}: [${x1},${y1}] → [${x2},${y2}] (diagonal)`);
-            else if (dx + dy !== 4) errors.push(`Index ${i}: [${x1},${y1}] → [${x2},${y2}] (jump ${dx+dy})`);
-        }
-        return errors.length ? errors : [`All valid. Total: ${path.length}`];
-    }
     colorTile(x,y,color){
 
     
@@ -249,7 +243,7 @@ export default class DepthFirstSearch{
             }
             this.setObstacle()
             //console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(neighborNodes),JSON.stringify(this.path),'==>',JSON.stringify(newNodes))
-            console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(this.path),JSON.stringify(this.obstacle))
+            //console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(this.path),JSON.stringify(this.obstacle))
         
         }
         

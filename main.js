@@ -31,8 +31,8 @@ function main(){
     
     
     gameObjects.push(apple)
-    apple.assignPosition(snake.chain.map(i => i.position))
-    
+    //apple.assignPosition(snake.chain.map(i => i.position))
+    apple.position = [384,164]
     snake.setPath(starSearch.generatePath())
     //snake.setPath(dfSearch.generatePath())
     //console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
@@ -73,8 +73,8 @@ function startMoving(){
     }
     status.isMoving = true
     showStatus()
-    //tick()
-    interval = setInterval(tick,10)
+    tick()
+    //interval = setInterval(tick,10)
     
 }
 
@@ -162,7 +162,7 @@ function tick() {
         doSurvive()
   }
   drawGameObjects()
-  //starSearch.draw()
+  starSearch.draw()
   //dfSearch.draw()
 }
 
