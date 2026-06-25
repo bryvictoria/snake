@@ -28,23 +28,7 @@ export default class StarSearch{
 
     draw(){
         const size = this.board.tileSize;
-/*
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = "lightgray";
-        this.ctx.lineWidth = 1;
 
-        for (let x = 0; x < this.tiles.length; x++) {
-            for (let y = 0; y < this.tiles[x].length; y++) {
-                const startX = x * size;
-                const startY = y * size;
-
-                this.ctx.moveTo(startX, startY);
-                this.ctx.lineTo(startX, startY + size);
-
-                this.ctx.lineTo(startX + size, startY + size);
-            }
-        }
-*/
         this.ctx.stroke();
         for(let mark of this.markings){
             this.colorTile(...mark)
@@ -87,18 +71,18 @@ export default class StarSearch{
         this.markings = [];
         this.ctr = 0
 
-        console.log('A*')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+    //    console.log('A*')
+    //    console.log('goal:'+JSON.stringify(this.goal))
+    //    console.log('head:'+JSON.stringify(this.start))
+    //    console.log('body:'+JSON.stringify(this.obstacles))
         
         while(this.nodes.length > 0 && !this._goalFound){
             this.searchNodes();
             
         }
 
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+JSON.stringify(this.path))
+    //    console.log('goal reached:'+this._goalFound)
+    //    console.log('path:'+JSON.stringify(this.path))
         return this.path
     }
 

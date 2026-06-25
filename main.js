@@ -31,18 +31,12 @@ function main(){
     
     
     gameObjects.push(apple)
-    //apple.assignPosition(snake.chain.map(i => i.position))
-    apple.position = [384,164]
+    apple.assignPosition(snake.chain.map(i => i.position))
     snake.setPath(starSearch.generatePath())
-    //snake.setPath(dfSearch.generatePath())
-    //console.log('snake:'+JSON.stringify(snake.chain.map(i=>i.position)))
     
     showStatus()
     
     startMoving()
-
-    
-    
 
     document.addEventListener("keyup", (event) => {
         if(event.key == "ArrowDown"){
@@ -73,8 +67,7 @@ function startMoving(){
     }
     status.isMoving = true
     showStatus()
-    tick()
-    //interval = setInterval(tick,10)
+    interval = setInterval(tick,10)
     
 }
 
@@ -100,7 +93,6 @@ function scored(){
     snake.setPath(starSearch.generatePath())
     
     if(!starSearch.isGoalFound()){
-        //console.log('generating survival path')
         
         setSurvivalPath()
 
@@ -119,9 +111,9 @@ function doSurvive(){
     if(stepsPath.length){
         snake.setPath(stepsPath)
         isSurvivalMode = true;
-        //console.log('survival mode ',steps,stepsPath)
+    
     } else {
-        //console.log('tail reached. reset')
+    
         setSurvivalPath()
     }
 }
@@ -130,7 +122,7 @@ function setSurvivalPath(){
     starSearch.setTarget(snake.chain[snake.chain.length - 1])
     starSearch.setChain(snake.chain)
     survivalPath = structuredClone(dfSearch.generatePath())
-    //console.log('generated:',survivalPath.length,survivalPath)
+
 }
 function gameOver(){
     status.status = "Game Over"
@@ -162,7 +154,7 @@ function tick() {
         doSurvive()
   }
   drawGameObjects()
-  starSearch.draw()
+  //starSearch.draw()
   //dfSearch.draw()
 }
 

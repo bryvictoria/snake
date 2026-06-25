@@ -13,7 +13,6 @@ export default class DepthFirstSearch{
     path = []
     nudge = true
     tiles = []
-    markings = []
     ctr  = 0
     MAX_ITERATIONS = 1000
     allDirections = [];
@@ -74,42 +73,19 @@ export default class DepthFirstSearch{
         const [head,...body] = this.chain
         this.start = head.position
         this.obstacles = this.chain.map(i => i.position)
-/*
-        // walls to simulate backtracking
-        for (let col = 0; col <= 50; col += 4) {
-            this.obstacles.push([52, col]); 
-        }
-        for (let col = 0; col <= 50; col += 4) {
-            this.obstacles.push([col, 52]); 
-        }
 
-        this.obstacles.push([20,20])
-        this.obstacles.push([16,20])
-        this.obstacles.push([12,20])
-        this.obstacles.push([8,20])
-        this.obstacles.push([4,20])
-
-        this.obstacles.push([12,16])
-        this.obstacles.push([12,12])
-        this.obstacles.push([12,8])
-
-        this.obstacles.push([4,16])
-        this.obstacles.push([4,12])
-        this.obstacles.push([4,8])
-*/
         this.goal = this._target.position
         this._goalFound = false
         
         this.nodes = [this.start]
         this.visitedNodes = new Set()
         this.path = []
-        this.markings = [];
         this.ctr = 0
 
-        console.log('DFS')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+    //    console.log('DFS')
+    //    console.log('goal:'+JSON.stringify(this.goal))
+    //    console.log('head:'+JSON.stringify(this.start))
+    //    console.log('body:'+JSON.stringify(this.obstacles))
         
         try{
             while(this.nodes.length > 0 && !this._goalFound){
@@ -120,8 +96,8 @@ export default class DepthFirstSearch{
             console.log(e.message)
         }
 
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+this.path.length+JSON.stringify(this.path))
+    //    console.log('goal reached:'+this._goalFound)
+    //    console.log('path:'+this.path.length+JSON.stringify(this.path))
 
         return this.path
     }
@@ -174,7 +150,7 @@ export default class DepthFirstSearch{
         ];
         let isBacktrack = false
         let neighborNodes = []
-        //console.log('searchNodes',JSON.stringify(this.nodes),'track',JSON.stringify(this.neighbors))
+
         for(let i = 0; i < len ;i++){
 
             if(this.ctr > this.MAX_ITERATIONS)
@@ -196,7 +172,7 @@ export default class DepthFirstSearch{
                     randomOrderedDirections[i] = randomOrderedDirections[j];
                     randomOrderedDirections[j] = temp;
                 }
-                //console.log(JSON.stringify(randomOrderedDirections))
+            
                 neighborNodes = randomOrderedDirections.map((i,index) => [node[0]+i[0],node[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
                 
     
@@ -221,7 +197,6 @@ export default class DepthFirstSearch{
 
                 
 
-                this.markings.push([firstNeighbor[0],firstNeighbor[1],this.greenScale(this.ctr++)])
                 this.depth++
                 isBacktrack = false
             }else{
@@ -242,8 +217,6 @@ export default class DepthFirstSearch{
                 }
             }
             this.setObstacle()
-            //console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(neighborNodes),JSON.stringify(this.path),'==>',JSON.stringify(newNodes))
-            //console.log(this.ctr,this.depth,node, isBacktrack,JSON.stringify(this.path),JSON.stringify(this.obstacle))
         
         }
         
@@ -258,14 +231,6 @@ export default class DepthFirstSearch{
             this.obstacles = [...this.path,...this.chain.map(i=>i.position).slice(0,this.chain.length-this.path.length)]
         }
     }
-    greenScale(i, totalSteps = 20) {
-        const maxStep = totalSteps - 1;
-        const clampedI = Math.max(0, Math.min(i, maxStep));
-        
-        const rValue = Math.round(255 - (clampedI * (255 / maxStep)));
-        const rHex = rValue.toString(16).padStart(2, '0').toUpperCase();
-        
-        return `#${rHex}FF00`;
-    }
+    
 
 }
