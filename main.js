@@ -10,7 +10,7 @@ const canvas = document.getElementById('game')
 const statusP = document.getElementById('status')
 const ctx = canvas.getContext('2d')
 let lastTime=0
-const snake = new Snake(ctx)
+const snake = new Snake(ctx,100)
 const apple = new Apple(ctx)
 const starSearch = new StarSearch(ctx,snake.chain,apple)
 const dfSearch = new DepthFirstSearch(ctx,snake.chain,apple)
@@ -38,23 +38,7 @@ function main(){
     
     startMoving()
 
-    document.addEventListener("keyup", (event) => {
-        if(event.key == "ArrowDown"){
-            snake.changeDirection(DIRECTIONS.DOWN)
-        } else if(event.key == "ArrowUp"){
-            snake.changeDirection(DIRECTIONS.UP)
-        } else if(event.key == "ArrowLeft"){
-            snake.changeDirection(DIRECTIONS.LEFT)
-        } else if(event.key == "ArrowRight"){
-            snake.changeDirection(DIRECTIONS.RIGHT)
-        } else if(event.key == " "){
-            if(status.isMoving)
-                stopMoving()
-            else
-                startMoving()
-        }
-        
-    });
+    addArrowControls()
 
 }
 
@@ -176,6 +160,25 @@ function drawGameObjects(){
         gameObjects[i].draw()
 
     }
+}
+function addArrowControls(){
+    document.addEventListener("keyup", (event) => {
+        if(event.key == "ArrowDown"){
+            snake.changeDirection(DIRECTIONS.DOWN)
+        } else if(event.key == "ArrowUp"){
+            snake.changeDirection(DIRECTIONS.UP)
+        } else if(event.key == "ArrowLeft"){
+            snake.changeDirection(DIRECTIONS.LEFT)
+        } else if(event.key == "ArrowRight"){
+            snake.changeDirection(DIRECTIONS.RIGHT)
+        } else if(event.key == " "){
+            if(status.isMoving)
+                stopMoving()
+            else
+                startMoving()
+        }
+        
+    });
 }
 
 main()

@@ -11,28 +11,24 @@ export default class DepthFirstSearch{
     obstacles = []
     start = null
     path = []
+    pathSet = new Set()
+    obstacleSet = new Set()
     nudge = true
     tiles = []
     ctr  = 0
     MAX_ITERATIONS = 1000
     allDirections = [];
+
     constructor(ctx,chain,target){
         this.ctx = ctx
         this.chain = chain
         this._target = target
-
         this.resetTiles()
-
-        this.generateDirections()
     }
 
-    generateDirections(){
-
-
-
-    }
-
+    
     draw(){
+
         const size = this.board.tileSize;
 
         this.ctx.stroke();
@@ -43,6 +39,7 @@ export default class DepthFirstSearch{
         for(let mark of this.obstacles){
             this.colorTile(...mark,'red')
         }
+
     }
 
     resetTiles(){
@@ -80,6 +77,8 @@ export default class DepthFirstSearch{
         this.nodes = [this.start]
         this.visitedNodes = new Set()
         this.path = []
+        this.pathSet = new Set();
+
         this.ctr = 0
 
     //    console.log('DFS')
@@ -100,6 +99,7 @@ export default class DepthFirstSearch{
     //    console.log('path:'+this.path.length+JSON.stringify(this.path))
 
         return this.path
+
     }
 
     colorTile(x,y,color){
@@ -121,17 +121,19 @@ export default class DepthFirstSearch{
             node[1] < 0 || node[1] >= 400 
         )
             return false
-
+/*
         for(let obstacle of this.obstacles){
             if(this.collides(obstacle,node))
                 return false 
         }
-        for(let pathNode of this.path){
-            if(this.collides(pathNode,node))
-                return false 
-        }
+*/        
+        let isPassable = !this.obstacleSet.has(node[0]+','+node[1]);
 
-        return true
+        if(isPassable) 
+            isPassable = !this.pathSet.has(node[0]+','+node[1])
+
+        return isPassable
+
     }
 
     isVisited(point){
@@ -165,13 +167,6 @@ export default class DepthFirstSearch{
                     randomOrderedDirections[i][0] = directionsMap[i][0];
                     randomOrderedDirections[i][1] = directionsMap[i][1];
                 }
-
-                for (let i = 3; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    const temp = randomOrderedDirections[i];
-                    randomOrderedDirections[i] = randomOrderedDirections[j];
-                    randomOrderedDirections[j] = temp;
-                }
             
                 neighborNodes = randomOrderedDirections.map((i,index) => [node[0]+i[0],node[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
                 
@@ -179,8 +174,6 @@ export default class DepthFirstSearch{
             } else{
                 neighborNodes = this.neighbors.pop()
             }
-            
-            
             
             for(let j in neighborNodes){
                 if(this.collides(neighborNodes[j],this.goal))
@@ -193,28 +186,27 @@ export default class DepthFirstSearch{
                 let firstNeighbor = neighborNodes[0]
                 this.visitedNodes.add(`[${firstNeighbor[0]},${firstNeighbor[1]}]`)
                 newNodes = [firstNeighbor]
+
                 this.path.push(firstNeighbor)
 
+                this.pathSet.add(firstNeighbor[0]+','+firstNeighbor[1])
                 
-
                 this.depth++
                 isBacktrack = false
-            }else{
 
-                if(this.depth >0) {
+            }else if(this.depth > 0) {
                     
-                    this.depth--
-                    this.neighbors.pop()
-                    this.path.pop()
+                this.depth--
+                this.neighbors.pop()
+                const removed = this.path.pop()
+                this.pathSet.delete(removed[0]+','+removed[0])
 
-                    
-
-                    let poppedNode = this.path[this.path.length-1]
-                    newNodes = [poppedNode]
-                    if(poppedNode)
-                        this.visitedNodes.add(`[${poppedNode[0]},${poppedNode[1]}]`)
-                    isBacktrack = true
-                }
+                let poppedNode = this.path[this.path.length-1]
+                newNodes = [poppedNode]
+                if(poppedNode)
+                    this.visitedNodes.add(`[${poppedNode[0]},${poppedNode[1]}]`)
+                isBacktrack = true
+            
             }
             this.setObstacle()
         
@@ -223,13 +215,15 @@ export default class DepthFirstSearch{
         this.nodes = newNodes
         
     }
+
     setObstacle(){
         this.obstacles = [];
         if(this.path.length >= this.chain.length){
-            this.obstacles = this.path.slice(this.path.length - this.chain.length,this.path.length)
+            this.obstacles = this.path.slice( this.path.length - this.chain.length, this.path.length )
         }else{
-            this.obstacles = [...this.path,...this.chain.map(i=>i.position).slice(0,this.chain.length-this.path.length)]
+            this.obstacles = [ ...this.path, ...this.chain.map(i=>i.position).slice( 0, this.chain.length - this.path.length ) ]
         }
+        this.obstacleSet = new Set(this.obstacles.map(i => i[0]+','+i[1]))
     }
     
 
