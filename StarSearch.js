@@ -1,10 +1,11 @@
-export default class StarSearch{
+import SearchAlgorithm from './SearchAlgorithm.js'
 
-    ctx = null
-    board = {width:100,height:100,tileSize:4}
 
-    chain = null
-    _target = null
+export default class StarSearch extends SearchAlgorithm{
+
+    
+
+    
     nodes = null
     visitedNodes = []
     goal = null
@@ -12,19 +13,10 @@ export default class StarSearch{
     start = null
     path = []
     nudge = true
-    tiles = []
     markings = []
     ctr  = 0
     
-    constructor(ctx,chain,target){
-        this.ctx = ctx
-        this.chain = chain
-        this._target = target
-
-        this.resetTiles()
-
-
-    }
+    
 
     draw(){
         const size = this.board.tileSize;
@@ -35,27 +27,9 @@ export default class StarSearch{
         }
     }
 
-    resetTiles(){
+    
 
-        for(let x = 0; x<= this.board.height; x++){
-            this.tiles[x] = []
-            for(let y = 0; y<= this.board.height; y++){
-                this.tiles[x][y] = 0
-            }
-        }
-    }
-
-    _goalFound = false
-
-    isGoalFound(){
-        return this._goalFound
-    }
-    setTarget(target){
-        this._target = target
-    }
-    setChain(chain){
-        this.chain = chain
-    }
+    
     generatePath(){
         this.resetTiles()
 
@@ -100,9 +74,7 @@ export default class StarSearch{
         this.ctx.stroke()
         
     }
-    collides(pos,_targetPos){
-        return pos[0] == _targetPos[0] && pos[1] == _targetPos[1]
-    }
+    
     isPassable(node){
         if(
             node[0] < 0 || node[0] > 400 
@@ -123,15 +95,7 @@ export default class StarSearch{
         return true
     }
 
-    computeManhattanDistance(start,end){
-        return Math.abs(end[0]-start[0]) + Math.abs(end[1]-start[1])
-    }
-
-    computeDistance = (a, b) => {
-        const dx = a[0] - b[0];
-        const dy = a[1] - b[1];
-        return Math.sqrt(dx * dx + dy * dy);
-    };
+    
 
 
     isVisited(point){
@@ -161,7 +125,6 @@ export default class StarSearch{
                 
                 let gh = this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.start) + (this.computeManhattanDistance([neighborNodes[j][0],neighborNodes[j][1]],this.goal) * (this.nudge?1.0001:1))
                 neighborsF[j] = gh
-                ////console.log(i,j,node,neighborNodes[j][0],neighborNodes[j][1],gh)
 
             }
 

@@ -33,11 +33,12 @@ function main(){
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
     snake.setPath(starSearch.generatePath())
+    //snake.setPath(dfSearch.generatePath())
     
     showStatus()
     
     startMoving()
-
+    //tick()
     addArrowControls()
 
 }
@@ -139,7 +140,7 @@ function tick() {
   }
   drawGameObjects()
   //starSearch.draw()
-  //dfSearch.draw()
+  dfSearch.draw()
 }
 
 function updateGameObjects(){
