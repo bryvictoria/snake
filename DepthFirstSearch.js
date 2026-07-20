@@ -154,8 +154,16 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     randomOrderedDirections[i][1] = directionsMap[i][1];
                 }
             
-                neighborNodes = randomOrderedDirections.map((i,index) => [node[0]+i[0],node[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
-                
+                neighborNodes = []
+                for(let k = 0; k < randomOrderedDirections.length;k++ ){
+                    let dir = randomOrderedDirections[k]
+
+                    let neighborNode = [node[0]+dir[0],node[1]+dir[1]]
+
+                    if(this.isPassable(neighborNode) && !this.isVisited(neighborNode)){
+                        neighborNodes.push(neighborNode)
+                    }
+                }
     
             } else{
                 neighborNodes = this.neighbors.pop()
@@ -166,10 +174,39 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     this._goalFound = true;
             }
 
+            let firstNeighbor = null
+
+            if(neighborNodes.length){
+                let neighborsF = []
+                for(let l in neighborNodes){
+
+                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.goal) * (this.nudge?1.0001:1))
+                    neighborsF[l] = gh
+
+                }
+
+                let maxIndex = neighborsF.indexOf(Math.max(...neighborsF));
+
+                const isTie = neighborsF.every(v => v === neighborsF[0]);
+
+                if(isTie){
+                    neighborsF = []
+                    for(let m in neighborNodes){
+
+                        let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.goal) * (this.nudge?1.0001:1))
+                        neighborsF[m] = gh
+
+                    }
+                    maxIndex = neighborsF.indexOf(Math.min(...neighborsF));
+                }
+
+                firstNeighbor = neighborNodes[maxIndex]
+            }
             
-            if(neighborNodes[0] != undefined){
+            if(firstNeighbor != null){
+
                 this.neighbors.push(neighborNodes)
-                let firstNeighbor = neighborNodes[0]
+                
                 this.visitedNodes.add(`[${firstNeighbor[0]},${firstNeighbor[1]}]`)
                 newNodes = [firstNeighbor]
 
