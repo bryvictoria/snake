@@ -12,6 +12,9 @@ export default class Apple extends GameObject{
         } while(excludePositionStr.includes(JSON.stringify(randomPos)));
         this.position = randomPos
     }
+    setPosition(pos){
+        this.position = pos
+    }
     update(){
 
     }

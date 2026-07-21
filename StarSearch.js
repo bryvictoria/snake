@@ -18,12 +18,12 @@ export default class StarSearch extends SearchAlgorithm{
     
     
 
-    draw(){
+    draw(color){
         const size = this.board.tileSize;
 
         this.ctx.stroke();
         for(let mark of this.markings){
-            this.colorTile(...mark)
+            this.colorTile(...mark,color)
         }
     }
 
@@ -32,7 +32,6 @@ export default class StarSearch extends SearchAlgorithm{
     
     generatePath(){
         this.resetTiles()
-
         const [head,...body] = this.chain
         this.start = head.position
         this.obstacles = this.chain.map(i => i.position)
@@ -45,29 +44,23 @@ export default class StarSearch extends SearchAlgorithm{
         this.markings = [];
         this.ctr = 0
 
-    //    console.log('A*')
-    //    console.log('goal:'+JSON.stringify(this.goal))
-    //    console.log('head:'+JSON.stringify(this.start))
-    //    console.log('body:'+JSON.stringify(this.obstacles))
+        console.log('A*')
+        console.log('goal:'+JSON.stringify(this.goal))
+        console.log('head:'+JSON.stringify(this.start))
+        console.log('body:'+JSON.stringify(this.obstacles))
         
         while(this.nodes.length > 0 && !this._goalFound){
             this.searchNodes();
             
         }
 
-    //    console.log('goal reached:'+this._goalFound)
-    //    console.log('path:'+JSON.stringify(this.path))
+        console.log('goal reached:'+this._goalFound)
+        console.log('path:'+JSON.stringify(this.path))
         return this.path
     }
 
 
     colorTile(x,y,color){
-
-        if(this._goalFound){
-            color = 'green'
-        }else{
-            color = 'red'
-        }
         this.ctx.beginPath()
         this.ctx.fillStyle = color
         this.ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
@@ -103,13 +96,13 @@ export default class StarSearch extends SearchAlgorithm{
     }
 
     searchNodes(){
+        
         let newNodes = []
         const len = this.nodes.length
         const tileSize = this.board.tileSize
         for(let i = 0; i < len ;i++){
             
             let node = this.nodes[i]
-
             let directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
             let neighborNodes = directionsMap.map((i,index) => [node[0]+i[0],node[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
 
@@ -152,7 +145,7 @@ export default class StarSearch extends SearchAlgorithm{
                 this.obstacles.unshift(lowestNeighbor);
                 this.obstacles.pop();
 
-                this.markings.push([lowestNeighbor[0],lowestNeighbor[1],''])
+                this.markings.push([lowestNeighbor[0],lowestNeighbor[1]])
             }
         }
         
