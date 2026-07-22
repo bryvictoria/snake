@@ -16,7 +16,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     nudge = true
     
     ctr  = 0
-    MAX_ITERATIONS = 1000
+    MAX_ITERATIONS = 10000
+
     allDirections = [];
 
     chainPos = []
@@ -65,10 +66,10 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
         this.ctr = 0
 
-        console.log('DFS')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+    //    console.log('DFS')
+    //    console.log('goal:'+JSON.stringify(this.goal))
+    //    console.log('head:'+JSON.stringify(this.start))
+    //    console.log('body:'+JSON.stringify(this.obstacles))
         
         try{
             while(this.nodes.length > 0 && !this._goalFound){
@@ -79,8 +80,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
             console.log(e.message)
         }
 
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+this.path.length+JSON.stringify(this.path))
+    //    console.log('goal reached:'+this._goalFound)
+    //    console.log('path:'+this.path.length+JSON.stringify(this.path))
 
         return this.path
 
@@ -132,14 +133,20 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         let isBacktrack = false
         let neighborNodes = []
         let neighborNodesF = []
-
+    //    console.log('search',this.depth,isBacktrack,JSON.stringify(this.nodes))
+    //    console.log('path:'+JSON.stringify(this.path))
         for(let i = 0; i < len ;i++){
 
             if(this.ctr > this.MAX_ITERATIONS)
                 break;
             
+            
             let node = this.nodes[i]
 
+            if(node == undefined && this.depth == 0){
+                node = this.start
+            }
+            
             if(!isBacktrack){
                 let randomOrderedDirections = [[0,0], [0,0], [0,0], [0,0]];
 
@@ -147,7 +154,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     randomOrderedDirections[i][0] = directionsMap[i][0];
                     randomOrderedDirections[i][1] = directionsMap[i][1];
                 }
-            
+                
                 neighborNodes = []
                 neighborNodesF = []
                 for(let k = 0; k < randomOrderedDirections.length;k++ ){
@@ -159,6 +166,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                         neighborNodes.push(neighborNode)
                     }
                 }
+
+        //        console.log(neighborNodes)
                 //console.log('not backtrack but ',node,JSON.stringify(neighborNodesF),JSON.stringify(neighborNodes))
                 if(this.ctr >= 50 && this.ctr <= 60){
 

@@ -1,7 +1,9 @@
 import Snake, { DIRECTIONS }  from './Snake.js'
 import Apple from './Apple.js'
 import StarSearch from './StarSearch.js'
+import GreedyStarSearch from './StarSearch.js'
 import DepthFirstSearch from './DepthFirstSearch.js'
+import BreadthFirstSearch from './BreadthFirstSearch.js'
 
 
 const gameObjects = []
@@ -14,7 +16,7 @@ const snake = new Snake(ctx,10)
 const shadowSnake = new Snake(ctx)
 const apple = new Apple(ctx)
 const starSearch = new StarSearch(ctx,snake.chain,apple)
-const laSearch = new StarSearch(ctx,snake.chain,apple)
+const bfSearch = new BreadthFirstSearch(ctx,snake.chain,apple)
 const dfSearch = new DepthFirstSearch(ctx,snake.chain,apple)
 const status = {
     score:0,
@@ -33,7 +35,7 @@ function main(){
     
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
-    //apple.setPosition([32,128])
+    //apple.setPosition([240,356])
     snake.setPath(starSearch.generatePath())
     //snake.setPath(dfSearch.generatePath())
     
@@ -45,6 +47,7 @@ function main(){
 
     document.getElementById('play-button').addEventListener('click', startMoving)
     document.getElementById('pause-button').addEventListener('click', stopMoving)
+    document.getElementById('tick-button').addEventListener('click', tick)
 }
 
 function startMoving(){
@@ -104,9 +107,7 @@ function scored(){
 }
 
 function lookAhead(huntPath,newSurvivalPath = true){
-    
 
-    
     const pathTail = huntPath.slice(-snake.chain.length)
 
     if(pathTail.length < snake.chain.length){
@@ -124,16 +125,16 @@ function lookAhead(huntPath,newSurvivalPath = true){
     shadowSnake.setPosition(pathTail)
 
 
-    laSearch.nudge = true
-    laSearch.setTarget(shadowSnake.chain[shadowSnake.chain.length - 1])
-    laSearch.setChain(shadowSnake.chain)
+    bfSearch.nudge = true
+    bfSearch.setTarget(shadowSnake.chain[shadowSnake.chain.length - 1])
+    bfSearch.setChain(shadowSnake.chain)
 
     console.log('just a look-ahead check')
 
-    laSearch.generatePath()
+    bfSearch.generatePath()
     
     
-    if(!laSearch.isGoalFound()){
+    if(!bfSearch.isGoalFound()){
         
         console.log('look-ahead hit')
         //console.log(JSON.stringify(pathTail))
@@ -204,9 +205,9 @@ function tick() {
         doSurvive()
   }
   drawGameObjects()
-  starSearch.draw('green')
-  //dfSearch.draw()
-  //laSearch.draw('blue')
+  //starSearch.draw('green')
+  dfSearch.draw()
+  //bfSearch.draw('blue')
 }
 
 function updateGameObjects(){
