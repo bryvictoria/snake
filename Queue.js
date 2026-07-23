@@ -1,7 +1,6 @@
 export default class Queue{
     
     _queue = []
-    _posSet = new Set()
 
     constructor(){
 
@@ -9,7 +8,6 @@ export default class Queue{
 
     enqueue(item){
         this._queue.push(item);
-        this._posSet.add(item[0]+','+item[1])
     }
 
     has(pos){
@@ -18,7 +16,6 @@ export default class Queue{
 
     reset(){
         this._queue = []
-        this._posSet = new Set()
     }
 
     get(pos){
@@ -28,15 +25,14 @@ export default class Queue{
         return this._queue.findIndex(i => i[0] === pos[0] && i[1] === pos[1])
     }
 
-    update(item){
-        let index = this.getIndex(item)
-        this._queue[index] = item
-    }
     dequeue(){
         return this._queue.shift()
     }
 
     isEmpty(){
         return this._queue.length == 0
+    }
+    length(){
+        return this._queue.length
     }
 }

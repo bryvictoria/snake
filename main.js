@@ -37,11 +37,14 @@ function main(){
     apple.assignPosition(snake.chain.map(i => i.position))
     //apple.setPosition([240,356])
     //apple.setPosition([52, 192])
-    //apple.setPosition([0,108])
+    apple.setPosition([4,284])
     //snake.setPath(starSearch.generatePath())
-    snake.setPath(bfSearch.generatePath())
+    const es = performance.now()
+    snake.setPath(bfSearch.generatePath(10))
     //snake.setPath(dfSearch.generatePath())
-    
+    const elapsed = performance.now() - es
+
+    console.log(`Execution time: ${elapsed.toFixed(2)} ms`)
     showStatus()
     
     //startMoving()

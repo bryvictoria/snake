@@ -1,4 +1,4 @@
-import PriorityQueue from './PriorityQueue.js'
+import Queue from './Queue.js'
 import SearchAlgorithm from './SearchAlgorithm.js'
 
 
@@ -18,19 +18,20 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
     markings = []
     ctr  = 0
 
-    pq = new PriorityQueue()
+    q = new Queue()
 
     
-    generatePath(){
+    generatePath(max = null){
         this.resetTiles()
         const [head,...body] = this.chain
-        this.pq.reset()
+        this.q.reset()
         this.start = head.position
         this.obstacles = this.chain.map(i => i.position)
         this.goal = this._target.position
         this._goalFound = false
         this.nodes = new Array(100 * 100).fill(null)
-        this.enqueueNode(this.toNode(this.start))
+        this.q.enqueue([...this.start,null])
+        this.nodes[this.computeIndexByPosition(this.start)] = {x:this.start[0],y:this.start[1],p:null,g:0}
 
         this.visitedNodes = new Set()
         this.path = []
@@ -38,7 +39,7 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.ctr = 0
 
         
-        console.log('A*')
+        console.log('BFS')
         console.log('goal:'+JSON.stringify(this.goal))
         console.log('head:'+JSON.stringify(this.start))
         console.log('body:'+JSON.stringify(this.obstacles))
@@ -46,98 +47,64 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
         let goalIndex = null
-        while(!this.pq.isEmpty()){
-            const pos = this.pq.dequeue()
+        let stopper = 0
+        while(!this.q.isEmpty() && stopper < 10000){
+            
+            const pos = this.q.dequeue()
+            
             const node = this.nodes[this.computeIndexByPosition(pos)]
-
+            const g = node.g + 1;
             if(this.collides(pos,this.goal)){
                 
                 this._goalFound = true
                 goalIndex = this.computeIndexByPosition(pos)
                 console.log('goal found, generate path',goalIndex);
                 break;
+            } else if(max != null && max == g){
+                this._goalFound = true
+                goalIndex = this.computeIndexByPosition(pos)
+                console.log('goal found, generate path',goalIndex);
+                break;
             }
 
-            this.visitedNodes.add(this.flattenPosition(pos))
+        //    this.visitedNodes.add(this.computeIndexByPosition(pos))
             
             let nPos = directionsMap.map((i,index) => [pos[0]+i[0],pos[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
-
+        //console.log(JSON.stringify(nPos))
             for(let i = 0 ; i < nPos.length;i++){
                 
-                let g = node.g + 1
-                let h = this.computeHueristics(nPos[i])
-                let f = g + h
                 let p = this.computeIndexByPosition(pos)
 
-                if(this.pq.has(nPos[i])){
+        //        this.visitedNodes.add(this.computeIndexByPosition(nPos[i]))
+                let nNode = [...nPos[i],p,g]
 
-                    let nNode = this.nodes[this.computeIndexByPosition(nPos[i])]
-
-                    if(f < nNode.f ){
-                        nNode.g = g
-                        nNode.h = h
-                        nNode.f = f
-                        nNode.parent = p
-
-                        this.pq.update([nNode.x,nNode.y,nNode.f])
-                    }
-                    
-                }else{
-                    let nNode = this.toNode(nPos[i])
-                    nNode.g = g
-                    nNode.h = h
-                    nNode.f = nNode.g + nNode.h
-                    nNode.parent = p
-
-                    this.enqueueNode(nNode)
-                }
-
+                this.nodes[this.computeIndexByPosition(nNode)] = {x:nNode[0],y:nNode[1],p,g}
+                this.q.enqueue(nNode)
             }
+            //console.log('q:'+JSON.stringify(this.q.length()))
+            //console.log([...this.visitedNodes])
+            stopper++
 
         }
 
         if(goalIndex){
             this.path = []
             let parentIndex = goalIndex
-            let stopper = 0
             
-            while(parentIndex != null && stopper < 1000){
+            while(parentIndex != null){
                 let n = this.nodes[parentIndex]
                 if(n) {
                     if(!this.collides([n.x,n.y],this.start))
                         this.path.push([n.x,n.y])
-                    parentIndex = n.parent
+                    parentIndex = n.p
                 }
-                stopper++
             }
 
-            this.path = this.path.reverse()
         }
         console.log('goal reached:'+this._goalFound)
         console.log('path:'+JSON.stringify(this.path))
-        //console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
         return this.path
-    }
-    enqueueNode(node){
-        this.nodes[this.computeIndexByPosition([node.x,node.y])] = node
-        this.pq.enqueue([node.x,node.y,node.f])
-
-    }
-    computeHueristics(pos){
-        return this.computeManhattanDistance(pos,this.goal)
-    }
-    toNode(pos){
-        
-        let node = {
-            x: pos[0],
-            y: pos[1],
-            f:0,
-            g:0,
-            h:0,
-            i:this.computeIndexByPosition(pos),
-            parent: null
-        }
-        return node
     }
     flattenPosition(pos,delimiter = ','){
         return pos[0]+delimiter+ pos[1]
@@ -158,11 +125,6 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
                 return false 
         }
 
-        for(let pathNode of this.path){
-            if(this.collides(pathNode,node))
-                return false 
-        }
-
         return true
     }
 
@@ -170,7 +132,11 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
 
 
     isVisited(point){
-        return this.visitedNodes.has(this.flattenPosition(point))
+        //return this.visitedNodes.has(this.computeIndexByPosition([point[0],point[1]]))
+        //return this.nodes[this.computeIndexByPosition(point)] != null
+
+        const idx = point[0] + point[1] * this.board.width
+        return this.nodes[idx] != null
     }
 
     colorTile(x,y,color){
@@ -191,6 +157,8 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         for(let n of this.path){
             this.colorTile(n[0],n[1],color)
         }
+
+       
     }
     
 
