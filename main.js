@@ -36,13 +36,16 @@ function main(){
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
     //apple.setPosition([240,356])
-    snake.setPath(starSearch.generatePath())
+    //apple.setPosition([52, 192])
+    //apple.setPosition([0,108])
+    //snake.setPath(starSearch.generatePath())
+    snake.setPath(bfSearch.generatePath())
     //snake.setPath(dfSearch.generatePath())
     
     showStatus()
     
-    startMoving()
-    //tick()
+    //startMoving()
+    tick()
     addArrowControls()
 
     document.getElementById('play-button').addEventListener('click', startMoving)
@@ -77,24 +80,39 @@ function showStatus(){
 
 const isCleanUp = false
 function cleanUp(){
-    dfSearch.generatePath() 
-    console.log('do a clenup')
+
+    console.log('do a clenup ',snake.path)
+    dfSearch.nudge = false
+    dfSearch.setTarget(apple)
+    dfSearch.setChain(snake.chain)
+    
     let maxCoiling = dfSearch.getMaxCoiling()
     dfSearch.setMaxCoiling(snake.chain.length)
     let cleanUpPath = dfSearch.generatePath()
     dfSearch.setMaxCoiling(maxCoiling)
+
     
+    /*
     let cleanUpTail = cleanUpPath[cleanUpPath.length-1]
     if(!dfSearch.collides(cleanUpTail,apple.position)){
-        bfSearch.setTarget(apple)
-        bfSearch.setChain(cleanUpPath.map(i => ({position:i})))
-        bfSearch.nudge = true
-        let fillerPath = bfSearch.generatePath()
+        console.log('prefiller:'+JSON.stringify(cleanUpPath.map(i => ({position:i})).reverse()))
+        starSearch.setTarget(apple)
+        starSearch.setChain(cleanUpPath.map(i => ({position:i})).reverse())
+        starSearch.nudge = true
+        let fillerPath = starSearch.generatePath()
 
         cleanUpPath = cleanUpPath.concat(fillerPath)
+
+        console.log('filler:'+JSON.stringify(fillerPath))
     }
-    
+    */
+
+    //cleanUpPath = cleanUpPath.reverse()
+
     snake.setPath(cleanUpPath)
+    console.log('cleanup:'+JSON.stringify(cleanUpPath))
+    console.log('end cleanup',JSON.stringify(snake.path))
+    
 }
 function scored(){
 
@@ -109,12 +127,13 @@ function scored(){
     status.score++
     showStatus()
 
-    if(true){ //snake.chain.length > 100 && snake.chain.length % 10 == 0){
+    if(snake.chain.length > 100 && snake.chain.length % 30 == 0){
         cleanUp()
         return false
     }
     console.log("new apple spawned - a* to check if reachable")
     starSearch.setTarget(apple)
+    starSearch.setChain(snake.chain)
     const huntPath = starSearch.generatePath()
 
     //snake.setPath(huntPath)
@@ -138,7 +157,7 @@ function scored(){
 
 function lookAhead(huntPath,newSurvivalPath = true){
 
-    const pathTail = huntPath.slice(-snake.chain.length)
+    let pathTail = huntPath.slice(-snake.chain.length)
 
     if(pathTail.length < snake.chain.length){
         const len = snake.chain.length - pathTail.length
@@ -151,20 +170,21 @@ function lookAhead(huntPath,newSurvivalPath = true){
             pathTail.unshift(node)
         }
     }
-
+    pathTail = pathTail.reverse()
     shadowSnake.setPosition(pathTail)
 
 
-    bfSearch.nudge = true
-    bfSearch.setTarget(shadowSnake.chain[shadowSnake.chain.length - 1])
-    bfSearch.setChain(shadowSnake.chain)
+    starSearch.nudge = true
+    starSearch.setTarget(shadowSnake.chain[shadowSnake.chain.length - 1])
+    shadowSnake.chain.pop()
+    starSearch.setChain(shadowSnake.chain)
 
     console.log('just a look-ahead check')
 
-    bfSearch.generatePath()
+    starSearch.generatePath()
     
     
-    if(!bfSearch.isGoalFound()){
+    if(!starSearch.isGoalFound()){
         
         console.log('look-ahead hit')
         //console.log(JSON.stringify(pathTail))
@@ -199,8 +219,16 @@ function setSurvivalPath(){
     dfSearch.nudge = false
     dfSearch.setTarget(snake.chain[snake.chain.length - 1])
     dfSearch.setChain(snake.chain)
-    survivalPath = structuredClone(dfSearch.generatePath())
+    
 
+    const tempSurvivalPath = dfSearch.generatePath()
+    
+    if(dfSearch.isGoalFound()){
+        survivalPath = structuredClone(dfSearch.generatePath())
+    }else{
+        console.log('tail-chasing does not work. do a cleanup')
+        cleanUp()
+    }
 }
 function gameOver(){
     status.status = "Game Over"
@@ -212,15 +240,13 @@ function gameOver(){
 function tick() {
 
   if(snake.headCollidesWith(apple.position)){
+    console.log('tick! scored start!',JSON.stringify(snake.path),JSON.stringify(snake.chain.map(i => i.position)))
     scored()
-  }else{
-    updateGameObjects()
-  }
-  if(snake.headHitsBody() || snake.headHitsWall()){
+    console.log('tick! scored end!',JSON.stringify(snake.path))
+    
+  } else if(snake.headHitsBody() || snake.headHitsWall()){
     gameOver()
-  }
-  
-  if(isSurvivalMode && snake.path.length == 0){
+  } else if(isSurvivalMode && snake.path.length == 0){
     console.log('tick! sub stalling ended')
     starSearch.setTarget(apple)
     starSearch.setChain(snake.chain)
@@ -231,13 +257,17 @@ function tick() {
         console.log('look-ahead tick')
         lookAhead(newpath,false)
         
-    } else
+    } else {
         doSurvive()
+    }
+
+  }else{
+    updateGameObjects()
   }
   drawGameObjects()
-  starSearch.draw('green')
-  dfSearch.draw()
-  //bfSearch.draw('blue')
+  //starSearch.draw('green')
+  //dfSearch.draw()
+  bfSearch.draw('blue')
 }
 
 function updateGameObjects(){

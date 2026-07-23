@@ -18,7 +18,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     ctr  = 0
     forwardCtr = 0
     maxIterations = 10000
-    maxCoiling = 2000
+    maxCoiling = 200
 
     allDirections = [];
 
@@ -73,10 +73,10 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.anchor = this.goal
         
 
-    //    console.log('DFS')
-    //    console.log('goal:'+JSON.stringify(this.goal))
+        console.log('DFS')
+        console.log('goal:'+JSON.stringify(this.goal))
     //    console.log('head:'+JSON.stringify(this.start))
-    //    console.log('body:'+JSON.stringify(this.obstacles))
+        console.log('body:'+JSON.stringify(this.obstacles))
         
         try{
             while(this.nodes.length > 0 && !this._goalFound){
@@ -88,12 +88,12 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         }
 
         console.log('goal reached:'+this._goalFound)
-        console.log('max coiling:'+this.maxCoiling)
-    //    console.log('path:'+this.path.length+JSON.stringify(this.path))
-        console.log('path length:'+this.path.length)
-        console.log('depth:'+JSON.stringify(this.depth))
-        console.log('ctr:'+JSON.stringify(this.ctr))
-        console.log('forward:'+JSON.stringify(this.forwardCtr))
+    //    console.log('max coiling:'+this.maxCoiling)
+        console.log('path:'+this.path.length+JSON.stringify(this.path))
+    //    console.log('path length:'+this.path.length)
+    //    console.log('depth:'+JSON.stringify(this.depth))
+    //    console.log('ctr:'+JSON.stringify(this.ctr))
+    //    console.log('forward:'+JSON.stringify(this.forwardCtr))
 
         return this.path
 
@@ -167,7 +167,13 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 break;
             
             
+            
             let node = this.nodes[i]
+
+            if(this.collides(node,this.goal)){
+                this._goalFound = true;
+                break;
+            }
 
             if(node == undefined && this.depth == 0){
                 node = this.start
@@ -198,10 +204,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 neighborNodes = this.neighbors.pop()
             }
             
-            for(let j in neighborNodes){
-                if(this.collides(neighborNodes[j],this.goal))
-                    this._goalFound = true;
-            }
+            
 
             let firstNeighbor = null
 
