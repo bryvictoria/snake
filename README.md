@@ -25,7 +25,21 @@ Rather than following the entire tail-chase path at once, the snake takes a rand
 ### 3. Safety Look-ahead (in progress)
 Before committing to an A* path to the apple, the AI will simulate eating it and verify: *can the tail still be reached afterward?* If not, it skips the apple and stalls instead. This prevents the most common cause of death — grabbing an apple that leads to a dead end.
 
-### 4. Hamiltonian Cycle (planned)
+### 4. Phase 4 Strategies
+
+**4.1 Standard A\* for greedy hunt and tail-chase**
+Replaced the original greedy implementation with proper A\* using open sets, closed sets, and a priority queue for optimal pathfinding.
+
+**4.2 Capped DFS coiling**
+DFS heuristic starts by targeting farthest from apple (coiling behavior), but after 2000 forward steps it switches to nearest to apple. Coil for space, then strike.
+
+**4.3 ~~Quadrant containment~~ (scrapped)**
+Idea was to bias or restrict pathfinding to the quadrant where the apple appears, either via `isPassable` blocking or adding a penalty of +10 to `h` for tiles outside the active quadrant. Scrapped — the containment itself risked trapping the snake inside the quadrant.
+
+**4.4 Contextual board reset via targeted wall coiling** *(in progress)*
+At a contextually determined trigger, use DFS with a farthest-from-target heuristic to drive the snake toward any chosen wall or corner. Clears fragmented board state and returns to greedy hunt from a clean, open position. Target point is steerable — center, edge, or any corner.
+
+### 5. Hamiltonian Cycle (planned)
 A path that visits every cell on the board exactly once. When all other strategies fail, the snake follows this cycle indefinitely — guaranteed never to die.
 
 ## Controls

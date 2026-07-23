@@ -16,7 +16,9 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     nudge = true
     
     ctr  = 0
-    MAX_ITERATIONS = 10000
+    forwardCtr = 0
+    maxIterations = 10000
+    maxCoiling = 2000
 
     allDirections = [];
 
@@ -48,6 +50,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
     generatePath(){
 
+
         this.resetTiles()
 
         const [head,...body] = this.chain
@@ -65,6 +68,10 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.pathSet = new Set();
 
         this.ctr = 0
+        this.forwardCtr = 0
+
+        this.anchor = this.goal
+        
 
     //    console.log('DFS')
     //    console.log('goal:'+JSON.stringify(this.goal))
@@ -80,8 +87,13 @@ export default class DepthFirstSearch extends SearchAlgorithm{
             console.log(e.message)
         }
 
-    //    console.log('goal reached:'+this._goalFound)
+        console.log('goal reached:'+this._goalFound)
+        console.log('max coiling:'+this.maxCoiling)
     //    console.log('path:'+this.path.length+JSON.stringify(this.path))
+        console.log('path length:'+this.path.length)
+        console.log('depth:'+JSON.stringify(this.depth))
+        console.log('ctr:'+JSON.stringify(this.ctr))
+        console.log('forward:'+JSON.stringify(this.forwardCtr))
 
         return this.path
 
@@ -122,6 +134,21 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
     depth = 0
     neighbors = []
+
+    anchor = null
+
+    setAnchor(anchor){
+        this.anchor = anchor
+    }
+
+    getMaxCoiling(anchor){
+        return this.maxCoiling
+    }
+    
+    setMaxCoiling(maxCoiling){
+        this.maxCoiling = maxCoiling
+    }
+    
     
     searchNodes(){
         let newNodes = []
@@ -133,11 +160,10 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         let isBacktrack = false
         let neighborNodes = []
         let neighborNodesF = []
-    //    console.log('search',this.depth,isBacktrack,JSON.stringify(this.nodes))
-    //    console.log('path:'+JSON.stringify(this.path))
+
         for(let i = 0; i < len ;i++){
 
-            if(this.ctr > this.MAX_ITERATIONS)
+            if(this.ctr > this.maxIterations)
                 break;
             
             
@@ -167,16 +193,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     }
                 }
 
-        //        console.log(neighborNodes)
-                //console.log('not backtrack but ',node,JSON.stringify(neighborNodesF),JSON.stringify(neighborNodes))
-                if(this.ctr >= 50 && this.ctr <= 60){
-
-        //            console.log('node:'+JSON.stringify(node))
-        //            console.log('path:'+JSON.stringify(this.path))
-        //            console.log('snak:'+JSON.stringify(this.chainPos))
-        //            console.log('obst:'+JSON.stringify(this.obstacles))
-
-                }
             } else{
                 //console.log('backtrack');
                 neighborNodes = this.neighbors.pop()
@@ -193,27 +209,32 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 let neighborsF = []
                 for(let l in neighborNodes){
 
-                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.goal) * (this.nudge?1.0001:1))
+                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.anchor) * (this.nudge?1.0001:1))
                     neighborsF[l] = gh
 
                 }
 
-                let maxIndex = neighborsF.indexOf(Math.max(...neighborsF));
+                let coilAway = true
 
-                const isTie = neighborsF.every(v => v === neighborsF[0]);
+                if(this.forwardCtr > this.maxCoiling)
+                    coilAway = false
+
+                let nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
+
+                const isTie = neighborsF.every(v => v === neighborsF[0])
 
                 if(isTie){
                     neighborsF = []
                     for(let m in neighborNodes){
 
-                        let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.goal) * (this.nudge?1.0001:1))
+                        let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.anchor) * (this.nudge?1.0001:1))
                         neighborsF[m] = gh
 
                     }
-                    maxIndex = neighborsF.indexOf(Math.min(...neighborsF));
+                    nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
                 }
 
-                firstNeighbor = neighborNodes[maxIndex]
+                firstNeighbor = neighborNodes[nIndex]
             }
             
             if(firstNeighbor != null){
@@ -238,7 +259,10 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
                 
                 this.depth++
+                this.forwardCtr++
                 isBacktrack = false
+
+
 
             }else if(this.depth > 0) {
                 this.depth--

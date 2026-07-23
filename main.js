@@ -12,7 +12,7 @@ const canvas = document.getElementById('game')
 const statusP = document.getElementById('status')
 const ctx = canvas.getContext('2d')
 let lastTime=0
-const snake = new Snake(ctx,10)
+const snake = new Snake(ctx,70)
 const shadowSnake = new Snake(ctx)
 const apple = new Apple(ctx)
 const starSearch = new StarSearch(ctx,snake.chain,apple)
@@ -75,19 +75,50 @@ function showStatus(){
 }
 
 
+const isCleanUp = false
+function cleanUp(){
+    dfSearch.generatePath() 
+    console.log('do a clenup')
+    let maxCoiling = dfSearch.getMaxCoiling()
+    dfSearch.setMaxCoiling(snake.chain.length)
+    let cleanUpPath = dfSearch.generatePath()
+    dfSearch.setMaxCoiling(maxCoiling)
+    
+    let cleanUpTail = cleanUpPath[cleanUpPath.length-1]
+    if(!dfSearch.collides(cleanUpTail,apple.position)){
+        bfSearch.setTarget(apple)
+        bfSearch.setChain(cleanUpPath.map(i => ({position:i})))
+        bfSearch.nudge = true
+        let fillerPath = bfSearch.generatePath()
 
+        cleanUpPath = cleanUpPath.concat(fillerPath)
+    }
+    
+    snake.setPath(cleanUpPath)
+}
 function scored(){
+
+    
+
     //console.log('scored',snake.chain)
     isSurvivalMode = false;
+    
     snake.addChain()
     apple.assignPosition(snake.chain.map(i => i.position))
     
+    status.score++
+    showStatus()
+
+    if(true){ //snake.chain.length > 100 && snake.chain.length % 10 == 0){
+        cleanUp()
+        return false
+    }
     console.log("new apple spawned - a* to check if reachable")
     starSearch.setTarget(apple)
     const huntPath = starSearch.generatePath()
 
     //snake.setPath(huntPath)
-    
+
     if(!starSearch.isGoalFound()){
         
         console.log('new apple not reachable, DFS path snake head to tail')
@@ -101,8 +132,7 @@ function scored(){
 
     }
     
-    status.score++
-    showStatus()
+    
     
 }
 
@@ -205,7 +235,7 @@ function tick() {
         doSurvive()
   }
   drawGameObjects()
-  //starSearch.draw('green')
+  starSearch.draw('green')
   dfSearch.draw()
   //bfSearch.draw('blue')
 }
