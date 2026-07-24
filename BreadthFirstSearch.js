@@ -39,10 +39,10 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.ctr = 0
 
         
-        console.log('BFS')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+        //console.log('BFS')
+        //console.log('goal:'+JSON.stringify(this.goal))
+        //console.log('head:'+JSON.stringify(this.start))
+        //console.log('body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
@@ -58,19 +58,19 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
                 
                 this._goalFound = true
                 goalIndex = this.computeIndexByPosition(pos)
-                console.log('goal found, generate path',goalIndex);
+                //console.log('goal found, generate path',goalIndex);
                 break;
             } else if(max != null && max == g){
                 this._goalFound = true
                 goalIndex = this.computeIndexByPosition(pos)
-                console.log('goal found, generate path',goalIndex);
+                //console.log('goal found, generate path',goalIndex);
                 break;
             }
 
         //    this.visitedNodes.add(this.computeIndexByPosition(pos))
             
             let nPos = directionsMap.map((i,index) => [pos[0]+i[0],pos[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
-        //console.log(JSON.stringify(nPos))
+        ////console.log(JSON.stringify(nPos))
             for(let i = 0 ; i < nPos.length;i++){
                 
                 let p = this.computeIndexByPosition(pos)
@@ -81,8 +81,8 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
                 this.nodes[this.computeIndexByPosition(nNode)] = {x:nNode[0],y:nNode[1],p,g}
                 this.q.enqueue(nNode)
             }
-            //console.log('q:'+JSON.stringify(this.q.length()))
-            //console.log([...this.visitedNodes])
+            ////console.log('q:'+JSON.stringify(this.q.length()))
+            ////console.log([...this.visitedNodes])
             stopper++
 
         }
@@ -101,9 +101,9 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
             }
 
         }
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+JSON.stringify(this.path))
-        console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        //console.log('goal reached:'+this._goalFound)
+        //console.log('path:'+JSON.stringify(this.path))
+        //console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
         return this.path
     }
     flattenPosition(pos,delimiter = ','){

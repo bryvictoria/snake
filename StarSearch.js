@@ -40,7 +40,7 @@ export default class StarSearch extends SearchAlgorithm{
         
         console.log('A*')
         console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
+        //console.log('head:'+JSON.stringify(this.start))
         console.log('body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
@@ -54,7 +54,7 @@ export default class StarSearch extends SearchAlgorithm{
                 
                 this._goalFound = true
                 goalIndex = this.computeIndexByPosition(pos)
-                console.log('goal found, generate path',goalIndex);
+                //console.log('goal found, generate path',goalIndex);
                 break;
             }
 
@@ -115,7 +115,7 @@ export default class StarSearch extends SearchAlgorithm{
         }
         console.log('goal reached:'+this._goalFound)
         console.log('path:'+JSON.stringify(this.path))
-        //console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        ////console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
         return this.path
     }
     enqueueNode(node){

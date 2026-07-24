@@ -4,7 +4,8 @@ import SearchAlgorithm from './SearchAlgorithm.js'
 export default class DepthFirstSearch extends SearchAlgorithm{
 
     
-    
+    bounded = false
+    cap = 1000
     nodes = null
     visitedNodes = new Set()
     goal = null
@@ -75,7 +76,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
         console.log('DFS')
         console.log('goal:'+JSON.stringify(this.goal))
-    //    console.log('head:'+JSON.stringify(this.start))
+        console.log('head:'+JSON.stringify(this.start))
         console.log('body:'+JSON.stringify(this.obstacles))
         
         try{
@@ -84,16 +85,16 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 
             }
         } catch(e){
-            console.log(e.message)
+            //console.log(e.message)
         }
 
         console.log('goal reached:'+this._goalFound)
-    //    console.log('max coiling:'+this.maxCoiling)
+    //    //console.log('max coiling:'+this.maxCoiling)
         console.log('path:'+this.path.length+JSON.stringify(this.path))
-    //    console.log('path length:'+this.path.length)
-    //    console.log('depth:'+JSON.stringify(this.depth))
-    //    console.log('ctr:'+JSON.stringify(this.ctr))
-    //    console.log('forward:'+JSON.stringify(this.forwardCtr))
+    //    //console.log('path length:'+this.path.length)
+    //    //console.log('depth:'+JSON.stringify(this.depth))
+    //    //console.log('ctr:'+JSON.stringify(this.ctr))
+    //    //console.log('forward:'+JSON.stringify(this.forwardCtr))
 
         return this.path
 
@@ -149,7 +150,14 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.maxCoiling = maxCoiling
     }
     
-    
+    setCap(cap){
+        this.cap = cap
+    }
+
+    setBounded(bounded){
+        this.bounded = bounded
+    }
+
     searchNodes(){
         let newNodes = []
         const len = this.nodes.length
@@ -165,9 +173,12 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
             if(this.ctr > this.maxIterations)
                 break;
-            
-            
-            
+            ////console.log(this.bounded , this.path.length , this.cap)
+            if(this.bounded && this.path.length > this.cap){
+                this._goalFound = true;
+                break;
+            }
+
             let node = this.nodes[i]
 
             if(this.collides(node,this.goal)){
@@ -200,7 +211,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 }
 
             } else{
-                //console.log('backtrack');
+                ////console.log('backtrack');
                 neighborNodes = this.neighbors.pop()
             }
             
@@ -216,27 +227,28 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     neighborsF[l] = gh
 
                 }
+                let nIndex = 0
+                if(!this.bounded){
+                    let coilAway = true
 
-                let coilAway = true
+                    if(this.forwardCtr > this.maxCoiling)
+                        coilAway = false
 
-                if(this.forwardCtr > this.maxCoiling)
-                    coilAway = false
-
-                let nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
-
-                const isTie = neighborsF.every(v => v === neighborsF[0])
-
-                if(isTie){
-                    neighborsF = []
-                    for(let m in neighborNodes){
-
-                        let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.anchor) * (this.nudge?1.0001:1))
-                        neighborsF[m] = gh
-
-                    }
                     nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
-                }
 
+                    const isTie = neighborsF.every(v => v === neighborsF[0])
+
+                    if(isTie){
+                        neighborsF = []
+                        for(let m in neighborNodes){
+
+                            let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.anchor) * (this.nudge?1.0001:1))
+                            neighborsF[m] = gh
+
+                        }
+                        nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
+                    }
+                } 
                 firstNeighbor = neighborNodes[nIndex]
             }
             
@@ -255,7 +267,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
                 
 
-        //        console.log(this.ctr+':'+`[${firstNeighbor[0]},${firstNeighbor[1]}]`+':'+JSON.stringify(this.obstacles))
+        //        //console.log(this.ctr+':'+`[${firstNeighbor[0]},${firstNeighbor[1]}]`+':'+JSON.stringify(this.obstacles))
 
                 this.obstacleSet.add(firstNeighbor[0]+','+firstNeighbor[1])
                 this.obstacleSet.delete(removedSet[0]+','+removedSet[1])
@@ -275,7 +287,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
                 let backNode = null
                 let backNodeIndex = this.path.length - this.obstacles.length - 2
-        //        console.log('backtrack?',backNodeIndex,backNode);
+        //        //console.log('backtrack?',backNodeIndex,backNode);
                 
                 if(backNodeIndex < 0){
                     backNodeIndex = this.chain.length - (this.obstacles.length - this.path.length + 2)
@@ -286,14 +298,14 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
                 
 
-        //        console.log('backtrack??',backNodeIndex,backNode);
+        //        //console.log('backtrack??',backNodeIndex,backNode);
                 if(backNode){
                     this.obstacles.unshift(backNode)
                     this.obstacleSet.add(backNode[0]+','+backNode[1])
                 }
                 this.obstacleSet.delete(removedSet[0]+','+removedSet[1])
                 
-        //        console.log("<:"+this.ctr)
+        //        //console.log("<:"+this.ctr)
 
                 const removed = this.path.pop()
                 this.pathSet.delete(removed[0]+','+removed[1])
