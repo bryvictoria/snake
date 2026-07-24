@@ -36,8 +36,11 @@ DFS heuristic starts by targeting farthest from apple (coiling behavior), but af
 **4.3 ~~Quadrant containment~~ (scrapped)**
 Idea was to bias or restrict pathfinding to the quadrant where the apple appears, either via `isPassable` blocking or adding a penalty of +10 to `h` for tiles outside the active quadrant. Scrapped — the containment itself risked trapping the snake inside the quadrant.
 
-**4.4 Contextual board reset via targeted wall coiling** *(in progress)*
-At a contextually determined trigger, use DFS with a farthest-from-target heuristic to drive the snake toward any chosen wall or corner. Clears fragmented board state and returns to greedy hunt from a clean, open position. Target point is steerable — center, edge, or any corner.
+**4.4 Periodic board defrag via depth-capped DFS cleanup**
+Every 100 points, a `dfsCleanup` routine automatically triggers. The original plan explored a textbook BFS flood-fill capped by depth, but that required a separate DFS pass to connect all touched nodes — so that was scrapped. Instead, the existing DFS was extended to support depth-capping natively. With no goal set, DFS just goes as deep as it can and naturally coils against whichever wall it reaches first. The result defragments the board and returns to greedy hunt from a clean, open position.
+
+**4.5 dfsCleanup as last-resort when tail is unreachable**
+Tail-chase survival mode breaks down when the tail itself is unreachable — there is nowhere safe to go. `dfsCleanup` was extended to handle this case: when both the apple and the tail are blocked, the cleanup routine takes over as the last-resort fallback, coiling the snake out of the deadlock.
 
 ### 5. Hamiltonian Cycle (planned)
 A path that visits every cell on the board exactly once. When all other strategies fail, the snake follows this cycle indefinitely — guaranteed never to die.
@@ -72,7 +75,7 @@ This project started in 2013 when I was exploring WPF in .NET — just trying ou
 
 Work got in the way and the AI snake was abandoned.
 
-Years later, I picked it up again — rewrote it for the browser, built a proper survival strategy on top of A*, discovered the tail-chase trick on my own, and now the snake consistently hunts hundreds of apples. The full solution isn't done yet, but it's a different project now than it was back then.
+Years later, I picked it up again — rewrote it for the browser, built a proper survival strategy on top of A*, discovered the tail-chase trick, and now the snake consistently hunts hundreds of apples. The full solution isn't done yet, but it's a different project now than it was back then.
 
 ## Roadmap
 
