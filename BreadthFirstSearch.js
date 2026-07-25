@@ -25,9 +25,9 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.resetTiles()
         const [head,...body] = this.chain
         this.q.reset()
-        this.start = head.position
+        this.start = [...head.position]
         this.obstacles = this.chain.map(i => i.position)
-        this.goal = this._target.position
+        this.goal = [...this._target.position]
         this._goalFound = false
         this.nodes = new Array(100 * 100).fill(null)
         this.q.enqueue([...this.start,null])

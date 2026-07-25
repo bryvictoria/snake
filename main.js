@@ -37,17 +37,11 @@ function main(){
     
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
-    //apple.setPosition([156,184])
-    //apple.setPosition([52, 192])
-    //apple.setPosition([284,284])
-    //snake.setPath(starSearch.generatePath())
-    //snake.setPath(bfSearch.generatePath(10))
-    //snake.setPath(dfSearch.generatePath())
     
-    next()
+    next(false,[360,44])
     showStatus()
     
-    startMoving()
+    //startMoving()
     //tick()
     addArrowControls()
 
@@ -85,6 +79,7 @@ function dfsCleanUp(){
     isCleanUp = true
     dfSearch.setCap(snake.chain.length * 1.5)
     dfSearch.setChain(snake.chain)
+
     dfSearch.setBounded(true)
     
     let cleanUpPath = dfSearch.generatePath()
@@ -193,8 +188,9 @@ function setSurvivalPath(){
     if(dfSearch.isGoalFound()){
         survivalPath = structuredClone(dfSearch.generatePath())
     }else{
-        console.log('tail-chasing does not work. do a cleanup')
+        console.log('tail-chasing does not work. do a cleanup ' + JSON.stringify(snake.chain.map(i => i.position)))
         isHardCleanUp = true
+        console.log('before cleanup:'+JSON.stringify(snake.path))
         dfsCleanUp()
     }
 }
@@ -209,25 +205,25 @@ function next(scored = true,applePosition = null){
 
     
 
-    console.log('scored!')
+    console.log('next!')
     isSurvivalMode = false;
-    
-    snake.addChain()
     
     if(applePosition != null)
         apple.setPosition(applePosition)
     if(scored){
+        console.log('scored!')
+        snake.addChain()
         apple.assignPosition(snake.chain.map(i => i.position))
     
         status.score++
         showStatus()
     }
 
-    if(!isHardCleanUp && snake.chain.length >= 100 && snake.chain.length % 100 == 0){
+    if(!isHardCleanUp && !isCleanUp && snake.chain.length >= 100 && snake.chain.length % 100 == 0){
         dfsCleanUp()
         return false
     }
-    //alert("new apple spawned - a* to check if reachable")
+
     console.log("new apple spawned - a* to check if reachable")
     starSearch.setTarget(apple)
     starSearch.setChain(snake.chain)
@@ -236,14 +232,14 @@ function next(scored = true,applePosition = null){
     //snake.setPath(huntPath)
 
     if(!starSearch.isGoalFound()){
-    //    alert('new apple not reachable, DFS path snake head to tail')
+
         console.log('new apple not reachable, DFS path snake head to tail')
         setSurvivalPath()
 
         doSurvive()
 
     }else{
-    //    alert('new apple reachable, so do a look-ahead check')
+
         console.log('new apple reachable, so do a look-ahead check')
         lookAhead(huntPath)
 
@@ -254,10 +250,10 @@ function next(scored = true,applePosition = null){
 function tick() {
   //console.log("TICK! ",JSON.stringify(snake.path))
   if(isCleanUp  && snake.path.length == 0) {
-    console.log('cleanup done')
+    console.log('cleanup done here')
+    next(false)
     isCleanUp = false
 
-    next(false)
     console.log('hard cleanup: ')
     isHardCleanUp = false
     

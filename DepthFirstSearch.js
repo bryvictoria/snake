@@ -55,12 +55,12 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.resetTiles()
 
         const [head,...body] = this.chain
-        this.start = head.position
+        this.start = [...head.position]
         this.obstacles = this.chain.map(i => i.position).reverse()
         this.chainPos = this.chain.map(i => i.position).reverse()
         this.obstacleSet = new Set(this.obstacles.map(i => i[0]+','+i[1]))
 
-        this.goal = this._target.position
+        this.goal = [...this._target.position]
         this._goalFound = false
         
         this.nodes = [this.start]
@@ -74,7 +74,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.anchor = this.goal
         
 
-        console.log('DFS')
+        console.log('DFS-')
         console.log('goal:'+JSON.stringify(this.goal))
         console.log('head:'+JSON.stringify(this.start))
         console.log('body:'+JSON.stringify(this.obstacles))
