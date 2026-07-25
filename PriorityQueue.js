@@ -11,17 +11,19 @@ export default class PriorityQueue{
     enqueue(item){
         let s = this._queue.length
         for(let i =0;i< this._queue.length;i++){ 
-            if(this._queue[i][2] > item[2]){ 
+            if(this._queue[i][2] < item[2]){ 
                 s = i; break;
             } 
         } 
         this._queue.splice(s,0,item);
-        this._posSet.add(item[0]+','+item[1])
+        this._posSet.add(this._key(item))
         //console.log(this._queue)
     }
-
+    _key(pos){
+        return pos[0] * 100 + pos[1]
+    }
     has(pos){
-        return this._posSet.has(pos[0]+','+pos[1])
+        return this._posSet.has(this._key(pos))
     }
 
     reset(){
@@ -42,7 +44,9 @@ export default class PriorityQueue{
         this.enqueue(item)
     }
     dequeue(){
-        return this._queue.shift()
+        let item = this._queue.pop()
+        this._posSet.delete(this._key(item))
+        return item
     }
 
     isEmpty(){

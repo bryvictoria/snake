@@ -22,31 +22,34 @@ export default class StarSearch extends SearchAlgorithm{
 
     
     generatePath(){
-        this.resetTiles()
+        //this.resetTiles()
         const [head,...body] = this.chain
         this.pq.reset()
         this.start = [...head.position]
         this.obstacles = this.chain.map(i => i.position)
-        this.goal = [...this._target.position]
+        this.obstacleSet = new Set([...this.obstacles.map(i => this._key(i))])
+        this.goal = [ ...this._target.position ]
         this._goalFound = false
         this.nodes = new Array(100 * 100).fill(null)
         this.enqueueNode(this.toNode(this.start))
 
-        this.visitedNodes = new Set()
+        this.visitedNodes = new Uint8Array(10000).fill(0)
+
         this.path = []
         this.markings = [];
         this.ctr = 0
 
         
-        console.log('A*')
-        console.log('goal:'+JSON.stringify(this.goal))
-        //console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+        //console.log('A*')
+        //console.log('goal:'+JSON.stringify(this.goal))
+        ////console.log('head:'+JSON.stringify(this.start))
+        //console.log('body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
         let goalIndex = null
-        while(!this.pq.isEmpty()){
+
+        while(!this.pq.isEmpty() ){
             const pos = this.pq.dequeue()
             const node = this.nodes[this.computeIndexByPosition(pos)]
 
@@ -54,45 +57,52 @@ export default class StarSearch extends SearchAlgorithm{
                 
                 this._goalFound = true
                 goalIndex = this.computeIndexByPosition(pos)
-                //console.log('goal found, generate path',goalIndex);
+                ////console.log('goal found, generate path',goalIndex);
                 break;
             }
 
-            this.visitedNodes.add(this.flattenPosition(pos))
+            this.visitedNodes[this._key(pos)] = 1
             
-            let nPos = directionsMap.map((i,index) => [pos[0]+i[0],pos[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
+            //let nPos = directionsMap.map((i,index) => [pos[0]+i[0],pos[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
+            
+            for(let i =0 ;i < directionsMap.length; i++){
+                let nPos = [pos[0]+directionsMap[i][0],pos[1]+directionsMap[i][1]]
+                if(this.isPassable(nPos) && !this.isVisited(nPos)) {
+                    
+                    
+                    let g = node.g + 1
+                    let h = this.computeHueristics(nPos)
+                    let f = g + h
+                    let p = this.computeIndexByPosition(pos)
 
-            for(let i = 0 ; i < nPos.length;i++){
-                
-                let g = node.g + 1
-                let h = this.computeHueristics(nPos[i])
-                let f = g + h
-                let p = this.computeIndexByPosition(pos)
+                    if(this.pq.has(nPos)){
 
-                if(this.pq.has(nPos[i])){
+                        let nNode = this.nodes[this.computeIndexByPosition(nPos)]
 
-                    let nNode = this.nodes[this.computeIndexByPosition(nPos[i])]
+                        if(f < nNode.f ){
+                            nNode.g = g
+                            nNode.h = h
+                            nNode.f = f
+                            nNode.parent = p
 
-                    if(f < nNode.f ){
+                            this.pq.update([nNode.x,nNode.y,nNode.f])
+                        }
+                        
+                    }else{
+                        let nNode = this.toNode(nPos)
                         nNode.g = g
                         nNode.h = h
-                        nNode.f = f
+                        nNode.f = nNode.g + nNode.h
                         nNode.parent = p
 
-                        this.pq.update([nNode.x,nNode.y,nNode.f])
+                        this.enqueueNode(nNode)
                     }
-                    
-                }else{
-                    let nNode = this.toNode(nPos[i])
-                    nNode.g = g
-                    nNode.h = h
-                    nNode.f = nNode.g + nNode.h
-                    nNode.parent = p
 
-                    this.enqueueNode(nNode)
                 }
-
             }
+
+
+
 
         }
 
@@ -113,14 +123,15 @@ export default class StarSearch extends SearchAlgorithm{
 
             this.path = this.path.reverse()
         }
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+JSON.stringify(this.path))
-        ////console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        //console.log('goal reached:'+this._goalFound)
+        //console.log('path:'+JSON.stringify(this.path))
+        //////console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
         return this.path
     }
     enqueueNode(node){
         this.nodes[this.computeIndexByPosition([node.x,node.y])] = node
         this.pq.enqueue([node.x,node.y,node.f])
+        console.log([node.x,node.y,node.f])
 
     }
     computeHueristics(pos){
@@ -145,7 +156,11 @@ export default class StarSearch extends SearchAlgorithm{
     computeIndexByPosition(pos){
         return pos[0] + pos[1] * this.board.width
     }
+
+    
     isPassable(node){
+
+        let key = this._key(node)
         if(
             node[0] < 0 || node[0] >= 400 
                 || 
@@ -153,15 +168,10 @@ export default class StarSearch extends SearchAlgorithm{
         )
             return false
 
-        for(let obstacle of this.obstacles){
-            if(this.collides(obstacle,node))
-                return false 
-        }
+        if(this.obstacleSet.has(key))
+            return false
 
-        for(let pathNode of this.path){
-            if(this.collides(pathNode,node))
-                return false 
-        }
+        
 
         return true
     }
@@ -170,7 +180,7 @@ export default class StarSearch extends SearchAlgorithm{
 
 
     isVisited(point){
-        return this.visitedNodes.has(this.flattenPosition(point))
+        return this.visitedNodes[this._key(point)] === 1
     }
 
     colorTile(x,y,color){

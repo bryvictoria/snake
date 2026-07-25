@@ -10,19 +10,9 @@ export default class Queue{
         this._queue.push(item);
     }
 
-    has(pos){
-        return this._posSet.has(pos[0]+','+pos[1])
-    }
 
     reset(){
         this._queue = []
-    }
-
-    get(pos){
-        return this._queue.find(i => i[0] === pos[0] && i[1] === pos[1])
-    }
-    getIndex(pos){
-        return this._queue.findIndex(i => i[0] === pos[0] && i[1] === pos[1])
     }
 
     dequeue(){

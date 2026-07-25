@@ -2,7 +2,7 @@ export default class SearchAlgorithm {
 
 
     ctx = null
-    board = {width:100,height:100,tileSize:4}
+    board = {width:100,height:100,tileSize:4,area: 400}
     
     chain = null
     _target = null
@@ -16,7 +16,9 @@ export default class SearchAlgorithm {
         this._target = target
         this.resetTiles()
     }
-
+    _key(pos){
+        return pos[0]/this.board.tileSize  + pos[1]/this.board.tileSize * this.board.width
+    }
     resetTiles(){
 
         for(let x = 0; x<= this.board.height; x++){

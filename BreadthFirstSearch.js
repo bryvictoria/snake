@@ -7,7 +7,7 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
     
 
     
-    nodes = {}
+    nodes = null
     visitedNodes = null
     goal = null
     obstacles = []
@@ -25,15 +25,17 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.resetTiles()
         const [head,...body] = this.chain
         this.q.reset()
-        this.start = [...head.position]
+        this.start = head.position
         this.obstacles = this.chain.map(i => i.position)
-        this.goal = [...this._target.position]
+        this.obstacleSet = new Set([...this.chain.map(i => this._key(i.position))])
+        this.goal = this._target.position
         this._goalFound = false
         this.nodes = new Array(100 * 100).fill(null)
-        this.q.enqueue([...this.start,null])
-        this.nodes[this.computeIndexByPosition(this.start)] = {x:this.start[0],y:this.start[1],p:null,g:0}
+        this.q.enqueue(this._key(this.start))
+        this.nodes[this._key(this.start)] = [this.start[0],this.start[1],null,0]
 
-        this.visitedNodes = new Set()
+        this.visitedNodes = new Uint8Array(10000).fill(0)
+        this.visitedNodes[this._key(this.start)] = 1
         this.path = []
         this.markings = [];
         this.ctr = 0
@@ -47,44 +49,58 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
         let goalIndex = null
-        let stopper = 0
-        while(!this.q.isEmpty() && stopper < 10000){
+        while(!this.q.isEmpty()  ){
             
-            const pos = this.q.dequeue()
+            const posId = this.q.dequeue()
             
-            const node = this.nodes[this.computeIndexByPosition(pos)]
-            const g = node.g + 1;
-            if(this.collides(pos,this.goal)){
+            const node = this.nodes[posId]
+            const g = node[3] + 1;
+
+            if(posId === this._key(this.goal)){
                 
                 this._goalFound = true
-                goalIndex = this.computeIndexByPosition(pos)
-                //console.log('goal found, generate path',goalIndex);
+                goalIndex = posId
+                console.log('goal found, generate path',goalIndex);
                 break;
             } else if(max != null && max == g){
                 this._goalFound = true
-                goalIndex = this.computeIndexByPosition(pos)
-                //console.log('goal found, generate path',goalIndex);
+                goalIndex = posId
+                console.log('goal found, generate path',goalIndex);
                 break;
             }
 
-        //    this.visitedNodes.add(this.computeIndexByPosition(pos))
             
-            let nPos = directionsMap.map((i,index) => [pos[0]+i[0],pos[1]+i[1]]).filter(i => this.isPassable(i) && !this.isVisited(i))
-        ////console.log(JSON.stringify(nPos))
-            for(let i = 0 ; i < nPos.length;i++){
+
+             for(let i =0 ;i < directionsMap.length; i++){
+
+
+
+                let nPos = [node[0]+directionsMap[i][0],node[1]+directionsMap[i][1]]
                 
-                let p = this.computeIndexByPosition(pos)
+                
+                
+                if(
+                    nPos[0] < 0 || nPos[0] >= 400 
+                        || 
+                    nPos[1] < 0 || nPos[1] >= 400 
+                )
+                    continue
 
-        //        this.visitedNodes.add(this.computeIndexByPosition(nPos[i]))
-                let nNode = [...nPos[i],p,g]
+                let nPosid = nPos[0]/tileSize + nPos[1]/tileSize * this.board.width
 
-                this.nodes[this.computeIndexByPosition(nNode)] = {x:nNode[0],y:nNode[1],p,g}
-                this.q.enqueue(nNode)
+                
+
+                if(!this.obstacleSet.has(nPosid) && this.visitedNodes[nPosid] === 0) {
+                    
+
+                    let p = posId
+
+                    this.nodes[nPosid] = [nPos[0],nPos[1],p,g]
+                    this.visitedNodes[nPosid] = 1
+                    this.q.enqueue(nPosid)
+                }
             }
-            ////console.log('q:'+JSON.stringify(this.q.length()))
-            ////console.log([...this.visitedNodes])
-            stopper++
-
+            
         }
 
         if(goalIndex){
@@ -94,24 +110,22 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
             while(parentIndex != null){
                 let n = this.nodes[parentIndex]
                 if(n) {
-                    if(!this.collides([n.x,n.y],this.start))
-                        this.path.push([n.x,n.y])
-                    parentIndex = n.p
+                    this.path.push([n[0],n[1]])
+                    parentIndex = n[2]
                 }
             }
+            this.path.pop()
+            this.path.reverse()
 
         }
         //console.log('goal reached:'+this._goalFound)
         //console.log('path:'+JSON.stringify(this.path))
-        //console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        //console.log('path:'+JSON.stringify(this.path))
+        //console.log('nodes:'+JSON.stringify(this.nodes))//.filter(i => i != null)))
         return this.path
     }
-    flattenPosition(pos,delimiter = ','){
-        return pos[0]+delimiter+ pos[1]
-    }
-    computeIndexByPosition(pos){
-        return pos[0] + pos[1] * this.board.width
-    }
+
+    
     isPassable(node){
         if(
             node[0] < 0 || node[0] >= 400 
@@ -120,24 +134,12 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         )
             return false
 
-        for(let obstacle of this.obstacles){
-            if(this.collides(obstacle,node))
-                return false 
-        }
+        return !this.obstacleSet.has(this._key(node))
 
-        return true
     }
 
     
 
-
-    isVisited(point){
-        //return this.visitedNodes.has(this.computeIndexByPosition([point[0],point[1]]))
-        //return this.nodes[this.computeIndexByPosition(point)] != null
-
-        const idx = point[0] + point[1] * this.board.width
-        return this.nodes[idx] != null
-    }
 
     colorTile(x,y,color){
         this.ctx.beginPath()
@@ -150,12 +152,13 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         const size = this.board.tileSize;
 
         this.ctx.stroke();
-        for(let n of this.nodes.filter(i => i != null)){
-            this.colorTile(n.x,n.y,'lightgreen')
-        }
+        if(this.nodes)
+            for(let n of this.nodes.filter(i => i != null)){
+                this.colorTile(n[0],n[1],'lightgreen')
+            }
 
         for(let n of this.path){
-            this.colorTile(n[0],n[1],color)
+            this.colorTile(n[0],n[1],'blue')
         }
 
        
