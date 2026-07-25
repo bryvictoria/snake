@@ -12,7 +12,7 @@ const canvas = document.getElementById('game')
 const statusP = document.getElementById('status')
 const ctx = canvas.getContext('2d')
 let lastTime=0
-const snake = new Snake(ctx,80)
+const snake = new Snake(ctx,10)
 const shadowSnake = new Snake(ctx)
 const apple = new Apple(ctx)
 const starSearch = new StarSearch(ctx,snake.chain,apple)
@@ -37,8 +37,8 @@ function main(){
     
     gameObjects.push(apple)
     apple.assignPosition(snake.chain.map(i => i.position))
-    apple.setPosition([404,404])
-    //apple.setPosition([396,396])
+    //apple.setPosition([404,404])
+    //apple.setPosition([64,308])
     const startTime = performance.now();
     starSearch.generatePath()
     const endTime = performance.now();
@@ -48,13 +48,13 @@ function main(){
     console.log(`pathfinding took ${duration.toFixed(3)} ms`);
     starSearch.draw()
 
-//    next(false,[0,52])
-    //next(false)
+    next(false,[112,248])
+//    next(false)
     
     showStatus()
     
-//   startMoving()
-//   tick()
+//    startMoving()
+//  tick()
     
     document.getElementById('play-button').addEventListener('click', startMoving)
     document.getElementById('pause-button').addEventListener('click', stopMoving)
@@ -135,11 +135,14 @@ function lookAhead(huntPath,newSurvivalPath = true){
         console.log('look-ahead hit')
         ////console.log(JSON.stringify(pathTail))
         ////console.log(JSON.stringify(shadowSnake.chain.map(i => i.position)))
+        let tailReached = true
         if(newSurvivalPath){
             console.log('look-ahead hit - generate new survival path')
-            setSurvivalPath()
+            tailReached = setSurvivalPath()
+
         }
-        doSurvive()
+        if(tailReached)
+            doSurvive()
         
     }else{
         snake.setPath(huntPath)

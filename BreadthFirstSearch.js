@@ -41,10 +41,10 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.ctr = 0
 
         
-        //console.log('BFS')
-        //console.log('goal:'+JSON.stringify(this.goal))
-        //console.log('head:'+JSON.stringify(this.start))
-        //console.log('body:'+JSON.stringify(this.obstacles))
+        console.log('BFS')
+        console.log('goal:'+JSON.stringify(this.goal))
+        console.log('head:'+JSON.stringify(this.start))
+        console.log('body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
@@ -118,9 +118,8 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
             this.path.reverse()
 
         }
-        //console.log('goal reached:'+this._goalFound)
-        //console.log('path:'+JSON.stringify(this.path))
-        //console.log('path:'+JSON.stringify(this.path))
+        console.log('goal reached:'+this._goalFound)
+        console.log('path:'+JSON.stringify(this.path))
         //console.log('nodes:'+JSON.stringify(this.nodes))//.filter(i => i != null)))
         return this.path
     }
