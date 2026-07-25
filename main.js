@@ -39,21 +39,21 @@ function main(){
     apple.assignPosition(snake.chain.map(i => i.position))
     //apple.setPosition([404,404])
     //apple.setPosition([64,308])
-    const startTime = performance.now();
-    starSearch.generatePath()
-    const endTime = performance.now();
+    //const startTime = performance.now();
+    //starSearch.generatePath()
+    //const endTime = performance.now();
 
-    const duration = endTime - startTime;
+    //const duration = endTime - startTime;
 
-    console.log(`pathfinding took ${duration.toFixed(3)} ms`);
-    starSearch.draw()
+    //console.log(`pathfinding took ${duration.toFixed(3)} ms`);
+    //starSearch.draw()
 
-    next(false,[112,248])
-//    next(false)
+    //next(false,[112,248])
+    next(false)
     
     showStatus()
     
-//    startMoving()
+    startMoving()
 //  tick()
     
     document.getElementById('play-button').addEventListener('click', startMoving)
@@ -87,6 +87,10 @@ function showStatus(){
 
 function dfsCleanUp(){
 
+    tailTestPass = false
+    tailTestPath = []
+    tailTestBody = []
+
     isCleanUp = true
     dfSearch.setCap(snake.chain.length * 1.5)
     dfSearch.setChain(snake.chain)
@@ -101,8 +105,11 @@ function dfsCleanUp(){
     console.log('cleanup done')
 }
 
+let tailTestPass = false
+let tailTestPath = []
+let tailTestBody = []
 function lookAhead(huntPath,newSurvivalPath = true){
-
+    //tailTestPass = false
     let pathTail = huntPath.slice(-snake.chain.length)
 
     if(pathTail.length < snake.chain.length){
@@ -127,7 +134,8 @@ function lookAhead(huntPath,newSurvivalPath = true){
 
     console.log('just a look-ahead check')
 
-    starSearch.generatePath()
+    tailTestPath = starSearch.generatePath()
+    
     
     
     if(!starSearch.isGoalFound()){
@@ -146,6 +154,9 @@ function lookAhead(huntPath,newSurvivalPath = true){
         
     }else{
         snake.setPath(huntPath)
+        tailTestPass = true
+        tailTestBody = shadowSnake.chain.map(i => i.position).reverse()
+        
     }
 }
 
@@ -154,6 +165,7 @@ function doSurvive(){
     let steps = Math.floor(Math.random() * (10 - 5 + 1)) + 5
     
     const stepsPath = survivalPath.splice(0, steps);
+    console.log('steps:'+JSON.stringify(stepsPath))
     if(stepsPath.length){
         snake.setPath(stepsPath)
         isSurvivalMode = true;
@@ -222,10 +234,26 @@ function next(scored = true,applePosition = null){
     if(!starSearch.isGoalFound()){
 
         console.log('new apple not reachable, DFS path snake head to tail')
-        let tailReached = setSurvivalPath()
-        if(tailReached)
-            doSurvive()
+        console.log('tailTestPass',tailTestPass)   
 
+        if(tailTestPass){    
+            //console.log('tailpath:'+JSON.stringify(tailTestPath))
+            //console.log('tailbody:'+JSON.stringify(tailTestBody))
+            tailTestPass = false
+            isSurvivalMode = true
+            survivalPath = tailTestPath.concat(tailTestBody)
+            console.log('tailTestPath:'+JSON.stringify(survivalPath))
+            doSurvive()
+        }else{
+
+            let tailReached = setSurvivalPath()
+
+
+            if(tailReached){
+                
+                doSurvive()
+            }
+        }
     }else{
 
         console.log('new apple reachable, so do a look-ahead check')
