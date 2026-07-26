@@ -154,9 +154,11 @@ function lookAhead(huntPath,newSurvivalPath = true){
         
     }else{
         snake.setPath(huntPath)
-        tailTestPass = true
-        tailTestBody = shadowSnake.chain.map(i => i.position).reverse()
-        
+
+        if(!isSurvivalMode){
+            tailTestPass = true
+            tailTestBody = shadowSnake.chain.map(i => i.position).reverse()
+        }        
     }
 }
 
@@ -236,7 +238,7 @@ function next(scored = true,applePosition = null){
         console.log('new apple not reachable, DFS path snake head to tail')
         console.log('tailTestPass',tailTestPass)   
 
-        if(tailTestPass){    
+        if(!isSurvivalMode && tailTestPass){    
             //console.log('tailpath:'+JSON.stringify(tailTestPath))
             //console.log('tailbody:'+JSON.stringify(tailTestBody))
             tailTestPass = false

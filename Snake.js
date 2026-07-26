@@ -125,12 +125,24 @@ export default class Snake{
         }
     }
 
+
     moveHead(){
         
         let next = this.path.shift();
+
+        if(
+            Math.abs(next[0] - this.chain[0].position[0]) > 4
+                || 
+            Math.abs(next[1] - this.chain[0].position[1]) > 4 
+        ) {
+            alert("theres a jump") // this is for debugging only
+        }
+
         this.chain[0].position = [next[0], next[1]];
         
     }
+
+
 
     addChain(x,y){
         let newTail = new SnakeChain(this.ctx, this.lastTailPos[0] ,this.lastTailPos[1])
