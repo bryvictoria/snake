@@ -42,6 +42,12 @@ Every 100 points, a `dfsCleanup` routine automatically triggers. The original pl
 **4.5 dfsCleanup as last-resort when tail is unreachable**
 Tail-chase survival mode breaks down when the tail itself is unreachable — there is nowhere safe to go. `dfsCleanup` was extended to handle this case: when both the apple and the tail are blocked, the cleanup routine takes over as the last-resort fallback, coiling the snake out of the deadlock.
 
+**4.6 BFS pre-check before A\* in survival mode (planned)**
+While in survival mode, re-attempting full A* to the apple on every step burns CPU even when the apple is obviously still unreachable. Plan: every nth step, run a cheap BFS reachability check to the apple first; only fall through to A* once BFS confirms the apple can be reached. Cuts wasted A* calls during long survival stretches.
+
+**4.7 Capped BFS enclosure check on apple (planned)**
+Still within survival mode: before committing to a hunt, run a capped BFS flood-fill starting from the apple to check whether it's sitting in an enclosed pocket (surrounded by snake body/walls with too little free space). If the apple is enclosed, skip hunting it and stay in survival/cleanup instead of wasting a path attempt on an apple that would trap the snake.
+
 ### 5. Hamiltonian Cycle (planned)
 A path that visits every cell on the board exactly once. When all other strategies fail, the snake follows this cycle indefinitely — guaranteed never to die.
 

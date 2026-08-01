@@ -4,16 +4,16 @@ export default class GameObject {
     size = 4
     color = '#000000'
 
-    constructor(ctx){
-        this.ctx = ctx
+    constructor(){
     }
 
     //defaults to drawing rectangle
-    draw(){  
-        this.ctx.fillStyle = this.color
-        const [x,y] = this.position
-        this.ctx.fillRect(x, y, this.size, this.size);
-    
+    draw(ctx){  
+        if(ctx){
+            ctx.fillStyle = this.color
+            const [x,y] = this.position
+            ctx.fillRect(x, y, this.size, this.size);
+        }
     }
 
     collidesWith(pos){

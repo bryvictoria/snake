@@ -1,9 +1,11 @@
 import GameObject from './GameObject.js'
 export default class Apple extends GameObject{
-    constructor(ctx,x=0,y=0){
-        super(ctx)
+    
+    constructor(x=0,y=0){
+        super()
         this.color = 'red'
     }
+
     assignPosition(excludePositions){
         let randomPos = null 
         let excludePositionStr = excludePositions.map(i => JSON.stringify(i))
@@ -12,18 +14,25 @@ export default class Apple extends GameObject{
         } while(excludePositionStr.includes(JSON.stringify(randomPos)));
         this.position = randomPos
     }
+
     setPosition(pos){
         this.position = pos
     }
+
+    getPosition(){
+        return this.position
+    }
+
     update(){
 
     }
-    draw(){  
+
+    draw(ctx){  
         
-        this.ctx.beginPath();
-        this.ctx.fillStyle = this.color
-        this.ctx.fillRect(this.position[0], this.position[1], this.size, this.size);
-        this.ctx.stroke();
+        ctx.beginPath();
+        ctx.fillStyle = this.color
+        ctx.fillRect(this.position[0], this.position[1], this.size, this.size);
+        ctx.stroke();
         
     }
     

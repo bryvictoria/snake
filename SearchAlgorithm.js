@@ -32,12 +32,15 @@ export default class SearchAlgorithm {
     isGoalFound(){
         return this._goalFound
     }
+    
     setTarget(target){
-        this._target = target
+        this._target = structuredClone(target)
     }
+
     setChain(chain){
         this.chain = chain
     }
+
     collides(pos,_targetPos){
         return pos[0] == _targetPos[0] && pos[1] == _targetPos[1]
     }

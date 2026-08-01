@@ -9,6 +9,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     nodes = null
     visitedNodes = new Set()
     goal = null
+    anchor = null
     obstacles = []
     start = null
     path = []
@@ -25,19 +26,19 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
     chainPos = []
     
-    draw(){
+    draw(ctx){
 
         const size = this.board.tileSize;
 
-        this.ctx.stroke();
+        ctx.stroke();
         for(let mark of this.path){
-            this.colorTile(...mark,'yellow')
+            this.colorTile(ctx,...mark,'yellow')
         }
 
         if(this.obstacles)
         for(let mark of this.obstacles){
             if(mark){
-                this.colorTile(...mark,'red')
+                this.colorTile(ctx,...mark,'red')
             }
         }
 
@@ -46,7 +47,9 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     }
 
     
-
+    setAnchor(anchor){
+        this.anchor = [...this.anchor.position]
+    }
     
 
     generatePath(){
@@ -71,9 +74,9 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.ctr = 0
         this.forwardCtr = 0
 
-        this.anchor = this.goal
-        
-
+        if(this.anchor === null)
+            this.anchor = this.goal
+    
         console.log('DFS-')
         console.log('goal:'+JSON.stringify(this.goal))
         console.log('head:'+JSON.stringify(this.start))
@@ -89,7 +92,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         }
 
         console.log('goal reached:'+this._goalFound)
-    //    //console.log('max coiling:'+this.maxCoiling)
+        console.log('max coiling:'+this.maxCoiling)
         console.log('path:'+this.path.length+JSON.stringify(this.path))
     //    //console.log('path length:'+this.path.length)
     //    //console.log('depth:'+JSON.stringify(this.depth))
@@ -100,13 +103,13 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
     }
 
-    colorTile(x,y,color){
+    colorTile(ctx,x,y,color){
 
     
-        this.ctx.beginPath()
-        this.ctx.fillStyle = color ?? 'brown'
-        this.ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
-        this.ctx.stroke()
+        ctx.beginPath()
+        ctx.fillStyle = color ?? 'brown'
+        ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
+        ctx.stroke()
         
     }
     
@@ -219,20 +222,23 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
             let firstNeighbor = null
 
+            let coilAway = true
+            if(this.forwardCtr > this.maxCoiling)
+                coilAway = false
+
             if(neighborNodes.length){
                 let neighborsF = []
                 for(let l in neighborNodes){
 
-                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.anchor) * (this.nudge?1.0001:1))
+                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
                     neighborsF[l] = gh
 
                 }
                 let nIndex = 0
                 if(!this.bounded){
-                    let coilAway = true
+                    
 
-                    if(this.forwardCtr > this.maxCoiling)
-                        coilAway = false
+                    
 
                     nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
 
@@ -242,7 +248,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                         neighborsF = []
                         for(let m in neighborNodes){
 
-                            let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.anchor) * (this.nudge?1.0001:1))
+                            let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
                             neighborsF[m] = gh
 
                         }

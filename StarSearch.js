@@ -23,7 +23,6 @@ export default class StarSearch extends SearchAlgorithm{
     
     generatePath(){
         
-        
         const [head,...body] = this.chain
         this.pq.reset()
         this.start = [...head.position]
@@ -61,7 +60,7 @@ export default class StarSearch extends SearchAlgorithm{
                 
                 this._goalFound = true
                 goalIndex = posId
-                ////console.log('goal found, generate path',goalIndex);
+                //////console.log('goal found, generate path',goalIndex);
                 break;
             }
 
@@ -109,7 +108,7 @@ export default class StarSearch extends SearchAlgorithm{
 
         }
 
-        if(goalIndex){
+        if(goalIndex != null){
             this.path = []
             let parentIndex = goalIndex
             
@@ -126,14 +125,14 @@ export default class StarSearch extends SearchAlgorithm{
         }
         console.log('goal reached:'+this._goalFound)
         console.log('path:'+JSON.stringify(this.path))
-        //////console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        ////////console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
         return this.path
     }
     enqueueNode(node){
         let posId = this._key([node.x,node.y])
         this.nodes[posId] = node
         this.pq.enqueue(posId,node.f)
-        //console.log([node.x,node.y,node.f])
+        ////console.log([node.x,node.y,node.f])
 
     }
     computeHueristics(pos){
@@ -183,26 +182,28 @@ export default class StarSearch extends SearchAlgorithm{
         return this.visitedNodes[posId] === 1
     }
 
-    colorTile(x,y,color){
-        this.ctx.beginPath()
-        this.ctx.fillStyle = color
-        this.ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
-        this.ctx.stroke()
+    colorTile(ctx,x,y,color){
+        ctx.beginPath()
+        ctx.fillStyle = color
+        ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
+        ctx.stroke()
         
     }
-    draw(color){
+    draw(ctx,color){
         const size = this.board.tileSize;
 
-        this.ctx.stroke();
-        for(let n of this.nodes.filter(i => i != null)){
-            this.colorTile(n.x,n.y,'lightgreen')
-        }
+        ctx.stroke();
+        
+        if(this.nodes.length)
+            for(let n of this.nodes.filter(i => i != null)){
+                this.colorTile(ctx,n.x,n.y,'lightgreen')
+            }
 
         for(let n of this.path){
-            this.colorTile(n[0],n[1],'green')
+            this.colorTile(ctx,n[0],n[1],'green')
         }
         for(let n of this.obstacles){
-            this.colorTile(n[0],n[1],'red')
+            this.colorTile(ctx,n[0],n[1],'red')
         }
     }
     
