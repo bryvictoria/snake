@@ -1,6 +1,6 @@
 import GameObject from './GameObject.js'
 export default class Apple extends GameObject{
-    
+    board = {width:100,height:100,tileSize:6,area: 600}
     constructor(x=0,y=0){
         super()
         this.color = 'red'
@@ -9,8 +9,9 @@ export default class Apple extends GameObject{
     assignPosition(excludePositions){
         let randomPos = null 
         let excludePositionStr = excludePositions.map(i => JSON.stringify(i))
+        excludePositionStr.push(JSON.stringify(this.position))
         do{
-            randomPos = [4 * Math.floor(Math.random() * 100),4 * Math.floor(Math.random() * 100)]
+            randomPos = [this.board.tileSize * Math.floor(Math.random() * this.board.width),this.board.tileSize * Math.floor(Math.random() * this.board.width)]
         } while(excludePositionStr.includes(JSON.stringify(randomPos)));
         this.position = randomPos
     }
@@ -23,6 +24,9 @@ export default class Apple extends GameObject{
         return this.position
     }
 
+    setBoard(board){
+        this.board = board
+    }
     update(){
 
     }

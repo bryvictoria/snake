@@ -10,10 +10,12 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     visitedNodes = new Set()
     goal = null
     anchor = null
+    shadow = []
     obstacles = []
     start = null
     path = []
     pathSet = new Set()
+    shadowSet = new Set()
     obstacleSet = new Set()
     nudge = true
     
@@ -21,6 +23,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     forwardCtr = 0
     maxIterations = 10000
     maxCoiling = 200
+
 
     allDirections = [];
 
@@ -35,8 +38,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
             this.colorTile(ctx,...mark,'yellow')
         }
 
-        if(this.obstacles)
-        for(let mark of this.obstacles){
+        if(this.shadow)
+        for(let mark of this.shadow){
             if(mark){
                 this.colorTile(ctx,...mark,'red')
             }
@@ -59,9 +62,9 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
         const [head,...body] = this.chain
         this.start = [...head.position]
-        this.obstacles = this.chain.map(i => i.position).reverse()
+        this.shadow = this.chain.map(i => i.position).reverse()
         this.chainPos = this.chain.map(i => i.position).reverse()
-        this.obstacleSet = new Set(this.obstacles.map(i => i[0]+','+i[1]))
+        this.shadowSet = new Set(this.shadow.map(i => i[0]+','+i[1]))
 
         this.goal = [...this._target.position]
         this._goalFound = false
@@ -77,10 +80,10 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         if(this.anchor === null)
             this.anchor = this.goal
     
-        console.log('DFS-')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+    //    window.debugger.log('DFS-')
+    //    window.debugger.log('goal:'+JSON.stringify(this.goal))
+    //    window.debugger.log('head:'+JSON.stringify(this.start))
+        window.debugger.log('DFS goal:'+JSON.stringify(this.goal) +' body:'+JSON.stringify(this.shadow))
         
         try{
             while(this.nodes.length > 0 && !this._goalFound){
@@ -88,16 +91,16 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 
             }
         } catch(e){
-            //console.log(e.message)
+            //window.debugger.log(e.message)
         }
 
-        console.log('goal reached:'+this._goalFound)
-        console.log('max coiling:'+this.maxCoiling)
-        console.log('path:'+this.path.length+JSON.stringify(this.path))
-    //    //console.log('path length:'+this.path.length)
-    //    //console.log('depth:'+JSON.stringify(this.depth))
-    //    //console.log('ctr:'+JSON.stringify(this.ctr))
-    //    //console.log('forward:'+JSON.stringify(this.forwardCtr))
+        window.debugger.log('goal reached:'+this._goalFound)
+    //    window.debugger.log('max coiling:'+this.maxCoiling)
+        window.debugger.log('path:'+this.path.length+JSON.stringify(this.path))
+    //    //window.debugger.log('path length:'+this.path.length)
+    //    //window.debugger.log('depth:'+JSON.stringify(this.depth))
+    //    //window.debugger.log('ctr:'+JSON.stringify(this.ctr))
+    //    //window.debugger.log('forward:'+JSON.stringify(this.forwardCtr))
 
         return this.path
 
@@ -117,16 +120,19 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
     isPassable(node){
         if(
-            node[0] < 0 || node[0] >= 400 
+            node[0] < 0 || node[0] >= 600 
                 || 
-            node[1] < 0 || node[1] >= 400 
+            node[1] < 0 || node[1] >= 600 
         )
             return false
 
-        let isPassable = !this.obstacleSet.has(node[0]+','+node[1]);
+        let isPassable = !this.shadowSet.has(node[0]+','+node[1]);
 
         if(isPassable) 
             isPassable = !this.pathSet.has(node[0]+','+node[1])
+
+        if(isPassable) 
+            isPassable = !this.obstacleSet.has(node[0]+','+node[1])
 
         return isPassable
 
@@ -176,7 +182,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
             if(this.ctr > this.maxIterations)
                 break;
-            ////console.log(this.bounded , this.path.length , this.cap)
+            ////window.debugger.log(this.bounded , this.path.length , this.cap)
             if(this.bounded && this.path.length > this.cap){
                 this._goalFound = true;
                 break;
@@ -184,7 +190,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
             let node = this.nodes[i]
 
-            if(this.collides(node,this.goal)){
+            if(this.collides(node,this.goal) || this.collides(node,this.anchor)){
                 this._goalFound = true;
                 break;
             }
@@ -214,7 +220,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 }
 
             } else{
-                ////console.log('backtrack');
+                ////window.debugger.log('backtrack');
                 neighborNodes = this.neighbors.pop()
             }
             
@@ -268,15 +274,15 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 this.path.push(firstNeighbor)
                 this.pathSet.add(firstNeighbor[0]+','+firstNeighbor[1])
 
-                this.obstacles.push(firstNeighbor)
-                const removedSet = this.obstacles.shift()
+                this.shadow.push(firstNeighbor)
+                const removedSet = this.shadow.shift()
 
                 
 
-        //        //console.log(this.ctr+':'+`[${firstNeighbor[0]},${firstNeighbor[1]}]`+':'+JSON.stringify(this.obstacles))
+        //        //window.debugger.log(this.ctr+':'+`[${firstNeighbor[0]},${firstNeighbor[1]}]`+':'+JSON.stringify(this.shadow))
 
-                this.obstacleSet.add(firstNeighbor[0]+','+firstNeighbor[1])
-                this.obstacleSet.delete(removedSet[0]+','+removedSet[1])
+                this.shadowSet.add(firstNeighbor[0]+','+firstNeighbor[1])
+                this.shadowSet.delete(removedSet[0]+','+removedSet[1])
 
                 
                 this.depth++
@@ -289,14 +295,14 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 this.depth--
                 this.neighbors.pop()
                 
-                const removedSet = this.obstacles.pop()
+                const removedSet = this.shadow.pop()
 
                 let backNode = null
-                let backNodeIndex = this.path.length - this.obstacles.length - 2
-        //        //console.log('backtrack?',backNodeIndex,backNode);
+                let backNodeIndex = this.path.length - this.shadow.length - 2
+        //        //window.debugger.log('backtrack?',backNodeIndex,backNode);
                 
                 if(backNodeIndex < 0){
-                    backNodeIndex = this.chain.length - (this.obstacles.length - this.path.length + 2)
+                    backNodeIndex = this.chain.length - (this.shadow.length - this.path.length + 2)
                     backNode = this.chainPos[backNodeIndex]
                 }else{
                     backNode = this.path[backNodeIndex]
@@ -304,14 +310,14 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
                 
 
-        //        //console.log('backtrack??',backNodeIndex,backNode);
+        //        //window.debugger.log('backtrack??',backNodeIndex,backNode);
                 if(backNode){
-                    this.obstacles.unshift(backNode)
-                    this.obstacleSet.add(backNode[0]+','+backNode[1])
+                    this.shadow.unshift(backNode)
+                    this.shadowSet.add(backNode[0]+','+backNode[1])
                 }
-                this.obstacleSet.delete(removedSet[0]+','+removedSet[1])
+                this.shadowSet.delete(removedSet[0]+','+removedSet[1])
                 
-        //        //console.log("<:"+this.ctr)
+        //        //window.debugger.log("<:"+this.ctr)
 
                 const removed = this.path.pop()
                 this.pathSet.delete(removed[0]+','+removed[1])
@@ -335,14 +341,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     }
 
     
-    setObstacle(){
-        this.obstacles = [];
-        if(this.path.length >= this.chain.length){
-            this.obstacles = this.path.slice( this.path.length - this.chain.length, this.path.length )
-        }else{
-            this.obstacles = [ ...this.path, ...this.chain.map(i=>i.position).slice( 0, this.chain.length - this.path.length ) ]
-        }
-        this.obstacleSet = new Set(this.obstacles.map(i => i[0]+','+i[1]))
+    setObstacle(obstacles){
+        this.obstacleSet = new Set(obstacles.map(i => i[0]+','+i[1]))
     }
     
 

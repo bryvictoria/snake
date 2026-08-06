@@ -2,7 +2,7 @@ export default class SearchAlgorithm {
 
 
     ctx = null
-    board = {width:100,height:100,tileSize:4,area: 400}
+    board = {width:100,height:100,tileSize:6,area: 600}
     
     chain = null
     _target = null
@@ -16,6 +16,8 @@ export default class SearchAlgorithm {
         this._target = target
         this.resetTiles()
     }
+
+
     _key(pos){
         return pos[0]/this.board.tileSize  + pos[1]/this.board.tileSize * this.board.width
     }
@@ -36,11 +38,16 @@ export default class SearchAlgorithm {
     setTarget(target){
         this._target = structuredClone(target)
     }
+    setBoard(board){
+        this.board = board
+    }
 
     setChain(chain){
         this.chain = chain
     }
-
+    getNodeCount(){
+        return this.nodes.filter(i => i != null).length
+    }
     collides(pos,_targetPos){
         return pos[0] == _targetPos[0] && pos[1] == _targetPos[1]
     }

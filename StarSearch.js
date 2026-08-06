@@ -4,9 +4,6 @@ import SearchAlgorithm from './SearchAlgorithm.js'
 
 export default class StarSearch extends SearchAlgorithm{
 
-    
-
-    
     nodes = {}
     visitedNodes = null
     goal = null
@@ -19,48 +16,47 @@ export default class StarSearch extends SearchAlgorithm{
     ctr  = 0
 
     pq = new PriorityQueue()
-
     
     generatePath(){
-        
+
         const [head,...body] = this.chain
         this.pq.reset()
         this.start = [...head.position]
         this.obstacles = this.chain.map(i => i.position)
 
-        
         this.obstacleSet = new Set([...this.obstacles.map(i => this._key(i))])
         this.goal = [ ...this._target.position ]
         this._goalFound = false
-        this.nodes = new Array(100 * 100).fill(null)
+        this.nodes = new Array(this.board.width * this.board.width).fill(null)
         this.enqueueNode(this.toNode(this.start))
 
-        this.visitedNodes = new Uint8Array(10000).fill(0)
+        this.visitedNodes = new Uint8Array(this.board.width * this.board.width).fill(0)
 
         this.path = []
         this.markings = [];
         this.ctr = 0
 
         
-        console.log('A*')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+        //window.debugger.log('A*')
+        //window.debugger.log('goal:'+JSON.stringify(this.goal))
+        //window.debugger.log('body:'+JSON.stringify(this.obstacles))
+        //window.debugger.log('nodes:'+JSON.stringify(this.nodes))
+        window.debugger.log(' A* goal:'+JSON.stringify(this.goal)+' body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
         let goalIndex = null
-        
-        while(!this.pq.isEmpty() ){
+        let stopper = 0
+        while(!this.pq.isEmpty()  && stopper++ < 1000000){
             const posId = this.pq.dequeue()
             const node = this.nodes[posId]
 
-            
+            //window.debugger.log(node)
             if(this.collides([node.x,node.y],this.goal)){
                 
                 this._goalFound = true
                 goalIndex = posId
-                //////console.log('goal found, generate path',goalIndex);
+                //////window.debugger.log('goal found, generate path',goalIndex);
                 break;
             }
 
@@ -107,6 +103,7 @@ export default class StarSearch extends SearchAlgorithm{
             
 
         }
+        //window.debugger.log('this.nodes:'+JSON.stringify(this.nodes))
 
         if(goalIndex != null){
             this.path = []
@@ -123,16 +120,18 @@ export default class StarSearch extends SearchAlgorithm{
 
             this.path = this.path.reverse()
         }
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+JSON.stringify(this.path))
-        ////////console.log('nodes:'+JSON.stringify(this.nodes.filter(i => i != null)))
+        //window.debugger.log('goal reached:'+this._goalFound)
+        //window.debugger.log('path length:'+JSON.stringify(this.path))
+        window.debugger.log('goal reached:'+this._goalFound)
+        window.debugger.log('path length:'+JSON.stringify(this.path))
+        //window.debugger.log('nodes touched: '+JSON.stringify(this.nodes.filter(i => i != null).length))
         return this.path
     }
     enqueueNode(node){
         let posId = this._key([node.x,node.y])
         this.nodes[posId] = node
         this.pq.enqueue(posId,node.f)
-        ////console.log([node.x,node.y,node.f])
+       // window.debugger.log([node.x,node.y,node.f])
 
     }
     computeHueristics(pos){
@@ -161,9 +160,9 @@ export default class StarSearch extends SearchAlgorithm{
 
         let key = this._key(node)
         if(
-            node[0] < 0 || node[0] >= 400 
+            node[0] < 0 || node[0] >= 600 
                 || 
-            node[1] < 0 || node[1] >= 400 
+            node[1] < 0 || node[1] >= 600 
         )
             return false
 

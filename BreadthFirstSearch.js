@@ -20,6 +20,8 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
 
     q = new Queue()
 
+
+
     
     generatePath(max = null){
         this.resetTiles()
@@ -41,10 +43,10 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.ctr = 0
 
         
-        console.log('BFS')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+        //window.debugger.log('BFS')
+        //window.debugger.log('goal:'+JSON.stringify(this.goal))
+        //window.debugger.log('head:'+JSON.stringify(this.start))
+        window.debugger.log('BFS goal:'+JSON.stringify(this.goal)+' body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
         const directionsMap = [[0,-1*tileSize],[0,tileSize],[tileSize,0],[-1*tileSize,0]]
@@ -60,12 +62,12 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
                 
                 this._goalFound = true
                 goalIndex = posId
-                console.log('goal found, generate path',goalIndex);
+                window.debugger.log('goal found, generate path',goalIndex);
                 break;
             } else if(max != null && max == g){
                 this._goalFound = true
                 goalIndex = posId
-                console.log('goal found, generate path',goalIndex);
+                window.debugger.log('goal found, generate path',goalIndex);
                 break;
             }
 
@@ -80,9 +82,9 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
                 
                 
                 if(
-                    nPos[0] < 0 || nPos[0] >= 400 
+                    nPos[0] < 0 || nPos[0] >= 600 
                         || 
-                    nPos[1] < 0 || nPos[1] >= 400 
+                    nPos[1] < 0 || nPos[1] >= 600 
                 )
                     continue
 
@@ -103,7 +105,7 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
             
         }
 
-        if(goalIndex){
+        if(goalIndex != null){
             this.path = []
             let parentIndex = goalIndex
             
@@ -118,18 +120,20 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
             this.path.reverse()
 
         }
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+JSON.stringify(this.path))
-        //console.log('nodes:'+JSON.stringify(this.nodes))//.filter(i => i != null)))
+
+
+        window.debugger.log('goal reached:'+this._goalFound)
+        window.debugger.log('path found:'+JSON.stringify(this.path))
+        //window.debugger.log('nodes touched:'+this.nodes.filter(i => i != null).length)//+' - '+JSON.stringify(this.nodes.filter(i => i != null)))
         return this.path
     }
 
     
     isPassable(node){
         if(
-            node[0] < 0 || node[0] >= 400 
+            node[0] < 0 || node[0] >= 600 
                 || 
-            node[1] < 0 || node[1] >= 400 
+            node[1] < 0 || node[1] >= 600 
         )
             return false
 
@@ -140,24 +144,24 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
     
 
 
-    colorTile(x,y,color){
-        this.ctx.beginPath()
-        this.ctx.fillStyle = color
-        this.ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
-        this.ctx.stroke()
+    colorTile(ctx,x,y,color){
+        ctx.beginPath()
+        ctx.fillStyle = color
+        ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
+        ctx.stroke()
         
     }
-    draw(color){
+    draw(ctx,color){
         const size = this.board.tileSize;
 
-        this.ctx.stroke();
+        ctx.stroke();
         if(this.nodes)
             for(let n of this.nodes.filter(i => i != null)){
-                this.colorTile(n[0],n[1],'lightgreen')
+                this.colorTile(ctx,n[0],n[1],'lightgreen')
             }
 
         for(let n of this.path){
-            this.colorTile(n[0],n[1],'blue')
+            this.colorTile(ctx,n[0],n[1],'blue')
         }
 
        

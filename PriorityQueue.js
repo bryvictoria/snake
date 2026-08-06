@@ -1,9 +1,10 @@
 export default class PriorityQueue{
     //let newI = {f:100}; const items = [{f:3},{f:8},{f:12},{f:14},{f:14},{f:20}]; let s = items.length; for(let i =0;i< items.length;i++){ if(items[i].f > newI.f){ s = i; break;} } items.splice(s,0,newI); items
 
+    board = {width:100,height:100,tileSize:6,area: 600}
     _queue = []
     _posSet = new Set()
-    _fScore = new Int32Array(10000).fill(0)
+    _fScore = new Int32Array(this.board.width*this.board.height).fill(0)
 
     constructor(){
 
@@ -27,7 +28,8 @@ export default class PriorityQueue{
     }
 
     _key(pos){
-        return pos[0] * 100 + pos[1]
+//        return pos[0] * this.board.width + pos[1]
+        return pos[0]/this.board.tileSize  + pos[1]/this.board.tileSize * this.board.width
     }
 
     has(posId){

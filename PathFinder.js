@@ -21,6 +21,11 @@ export default class PathManager{
         
     }
 
+    setBoard(board){
+        this.#starSearch.setBoard(board)
+        this.#dfSearch.setBoard(board)
+        this.#bfSearch.setBoard(board)
+    }
     getHuntPath(state){
         this.#starSearch.setTarget(state.apple)
         this.#starSearch.setChain(state.snake.chain)
@@ -28,7 +33,7 @@ export default class PathManager{
         let path = this.#starSearch.generatePath()
         
         let endTime = performance.now()
-        //console.log('Time:'+(endTime-startTime)+'ms')
+        //window.debugger.log('Time:'+(endTime-startTime)+'ms')
 
         return path
     }
@@ -42,23 +47,27 @@ export default class PathManager{
         return {path,reached}
     }
 
+
     getBreadthPath(chain,goal){
         this.#bfSearch.setTarget({position:goal})
         this.#bfSearch.setChain(chain)
         const path = this.#bfSearch.generatePath()
         const reached = this.#bfSearch.isGoalFound()
-
-        return {path,reached}
+        const nodes = this.#bfSearch.getNodeCount()
+        
+        return {path,reached,nodes}
     }
 
     
-    getDepthFirstPath(chain,goal,anchor = null){
+    getDepthFirstPath(chain,goal,anchor = null,obstacle = false){
         this.#dfSearch.nudge = false
         this.#dfSearch.setTarget(goal)
         this.#dfSearch.setMaxCoiling(chain.length)
         this.#dfSearch.setChain(chain)
         this.#dfSearch.setAnchor(anchor)
         this.#dfSearch.setBounded(false)
+        if(obstacle)
+            this.#dfSearch.setObstacle(chain.map(i => i.position))
         const path = this.#dfSearch.generatePath()
         const reached = this.#dfSearch.isGoalFound()
 
@@ -78,7 +87,7 @@ export default class PathManager{
         return path
     }
     draw(ctx){
-        //this.#starSearch.draw(this.ctx)
+        this.#starSearch.draw(this.ctx)
         this.#bfSearch.draw(this.ctx)
         this.#dfSearch.draw(this.ctx)
 
