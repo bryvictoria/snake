@@ -6,6 +6,7 @@ export default class PathManager{
     #starSearch
     #dfSearch
     #bfSearch
+    #board
     ctx
     constructor(){
 
@@ -25,6 +26,7 @@ export default class PathManager{
         this.#starSearch.setBoard(board)
         this.#dfSearch.setBoard(board)
         this.#bfSearch.setBoard(board)
+        this.#board = board
     }
     getHuntPath(state){
         this.#starSearch.setTarget(state.apple)
@@ -39,14 +41,20 @@ export default class PathManager{
     }
 
     getStarPath(chain,goal){
+
         this.#starSearch.setTarget({position:goal})
         this.#starSearch.setChain(chain)
+        
         const path = this.#starSearch.generatePath()
         const reached = this.#starSearch.isGoalFound()
 
         return {path,reached}
     }
 
+
+    isAdjacent(from,to){
+        return this.#starSearch.computeManhattanDistance(from,to) === this.#board.tileSize
+    }
 
     getBreadthPath(chain,goal){
         this.#bfSearch.setTarget({position:goal})
