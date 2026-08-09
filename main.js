@@ -4,11 +4,11 @@ const messageBox = document.getElementById('message')
 function main(){
 
     window.debugger = {
-        size:1000,
+        size:10000,
         data: [],
         index:0,
         log(l){
-            this.data.push(JSON.stringify(l))
+            this.data.push(l)
             if(this.data.length > this.size)
                 this.data.shift()
         },
@@ -18,7 +18,7 @@ function main(){
         debug(){
             
             for(let i in this.data){
-                console.log(JSON.parse(this.data[i]))
+                console.log(this.data[i])
             }
         }
 

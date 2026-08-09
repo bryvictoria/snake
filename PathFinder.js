@@ -51,6 +51,18 @@ export default class PathManager{
         return {path,reached}
     }
 
+    getShortestPath(chain,goal){
+        
+        this.#dfSearch.nudge = false
+        this.#dfSearch.setTarget({position:goal})
+        this.#dfSearch.setMaxCoiling(0)
+        this.#dfSearch.setChain(chain)
+        this.#dfSearch.setAnchor(null)
+        this.#dfSearch.setBounded(false)
+        const path = this.#dfSearch.generatePath()
+        const reached = this.#dfSearch.isGoalFound()
+        return {path,reached}
+    }
 
     isAdjacent(from,to){
         return this.#starSearch.computeManhattanDistance(from,to) === this.#board.tileSize

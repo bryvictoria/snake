@@ -24,7 +24,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     maxIterations = 10000
     maxCoiling = 200
 
-
+    _capReached = false
     allDirections = [];
 
     chainPos = []
@@ -65,9 +65,11 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.shadow = this.chain.map(i => i.position).reverse()
         this.chainPos = this.chain.map(i => i.position).reverse()
         this.shadowSet = new Set(this.shadow.map(i => i[0]+','+i[1]))
+        this.obstacleSet = new Set()
 
         this.goal = [...this._target.position]
         this._goalFound = false
+        this._capReached = false
         
         this.nodes = [this.start]
         this.visitedNodes = new Set()
@@ -86,7 +88,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         window.debugger.log('DFS goal:'+JSON.stringify(this.goal) +' body:'+JSON.stringify(this.shadow))
         
         try{
-            while(this.nodes.length > 0 && !this._goalFound){
+            while(this.nodes.length > 0 && (!this._goalFound || !this._capReached)){
                 this.searchNodes()
                 
             }
@@ -95,12 +97,12 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         }
 
         window.debugger.log('goal reached:'+this._goalFound)
-    //    window.debugger.log('max coiling:'+this.maxCoiling)
+        window.debugger.log('max coiling:'+this.maxCoiling)
         window.debugger.log('path:'+this.path.length+JSON.stringify(this.path))
-    //    //window.debugger.log('path length:'+this.path.length)
-    //    //window.debugger.log('depth:'+JSON.stringify(this.depth))
-    //    //window.debugger.log('ctr:'+JSON.stringify(this.ctr))
-    //    //window.debugger.log('forward:'+JSON.stringify(this.forwardCtr))
+        window.debugger.log('path length:'+this.path.length)
+        window.debugger.log('depth:'+JSON.stringify(this.depth))
+        window.debugger.log('ctr:'+JSON.stringify(this.ctr))
+        window.debugger.log('forward:'+JSON.stringify(this.forwardCtr))
 
         return this.path
 
@@ -184,13 +186,14 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 break;
             ////window.debugger.log(this.bounded , this.path.length , this.cap)
             if(this.bounded && this.path.length > this.cap){
-                this._goalFound = true;
+                this._capReached = true;
                 break;
             }
 
             let node = this.nodes[i]
 
             if(this.collides(node,this.goal) || this.collides(node,this.anchor)){
+                //console.log("this collided:",node,this.goal,this.anchor)
                 this._goalFound = true;
                 break;
             }
@@ -236,10 +239,11 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 let neighborsF = []
                 for(let l in neighborNodes){
 
-                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
+                    let gh = (this.computeDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start)) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
                     neighborsF[l] = gh
 
                 }
+                //console.log(JSON.stringify(neighborsF)+" NODE: "+JSON.stringify(node)+" NODES: "+JSON.stringify(neighborNodes))
                 let nIndex = 0
                 if(!this.bounded){
                     
@@ -254,7 +258,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                         neighborsF = []
                         for(let m in neighborNodes){
 
-                            let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
+                            let gh = (this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start)) + (this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
                             neighborsF[m] = gh
 
                         }
