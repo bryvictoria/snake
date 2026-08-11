@@ -117,15 +117,17 @@ export default class StrategyManager{
 
             if(lookAhead.reached){
 
-            //    if(lookAhead.path.length === 1){
-            //        this.#tailTestFallbackPath = []
-            //        huntResult.headTailCollide = true
-            //        console.log('COLIDE:'+JSON.stringify(lookAhead.path))
-            //    } else {
+                if(lookAhead.path.length === 1){
+                    console.log("TAIL TEST PASSED BUT HEAD-TAIL IS ADJACENT SO FAIL IT")
+                    lookAhead.reached = false
+                    this.#tailTestFallbackPath = []
+                //    huntResult.headTailCollide = true
+                //    console.log('COLIDE:'+JSON.stringify(lookAhead.path))
+                } else {
                     this.#tailTestFallbackPath = lookAhead.path.concat(this.#simulationSnake.chain.map(i => i.position).reverse())
                     window.debugger.log("lookAhead:"+JSON.stringify(lookAhead.path))
                     window.debugger.log("testtail:"+JSON.stringify(this.#tailTestFallbackPath))
-            //    }
+                }
 
             }
 

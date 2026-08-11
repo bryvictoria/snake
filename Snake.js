@@ -14,7 +14,7 @@ export class SnakeChain extends GameObject {
     }
     drawShadow(ctx){
         if(ctx){
-            ctx.fillStyle = 'gray'
+            ctx.fillStyle = 'green'
             const [x,y] = this.position
             let shadowSize = Math.floor(this.size * 0.2)
             if(
@@ -132,7 +132,7 @@ StarSearch.js:47 head:[0,148]
             this.chain.push(new SnakeChain(points[i][0], points[i][1],this.board.tileSize));
             this.chainCount++
         }
-        this.chain[0].color= 'blue'
+        this.chain[0].color= 'green'
     }
     
     init(){
@@ -142,7 +142,7 @@ StarSearch.js:47 head:[0,148]
             this.chain.push(new SnakeChain(i * this.board.tileSize ,this.board.tileSize, this.board.tileSize));
             this.chainCount++
         }
-        this.chain[0].color= 'blue'
+        this.chain[0].color= 'green'
         this.setLastTailPos()
         //window.debugger.log(JSON.stringify(this.chain.map(i => i.position)))
     }

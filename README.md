@@ -48,6 +48,17 @@ While in survival mode, re-attempting full A* to the apple on every step burns C
 **4.7 Capped BFS enclosure check on apple (planned)**
 Still within survival mode: before committing to a hunt, run a capped BFS flood-fill starting from the apple to check whether it's sitting in an enclosed pocket (surrounded by snake body/walls with too little free space). If the apple is enclosed, skip hunting it and stay in survival/cleanup instead of wasting a path attempt on an apple that would trap the snake.
 
+**4.8 Phase 4 final benchmark**
+Phase 4 (A*/DFS/BFS survival strategy work) closed out with a per-board benchmark run, measured against a self-set transition threshold of 30% occupancy on the 100x100 board, 40% on the 50x50 board, and 50% on everything smaller. All boards cleared their threshold, all runs ended the same way — trapped during `dfsCleanup`/`DEFRAGGING`:
+
+| Board | Size | Score | Occupancy | Threshold |
+|---|---|---|---|---|
+| warmup | 10x10 | 62 | 72% | 50% |
+| classic | 20x20 | 299 | 78% | 50% |
+| dense | 30x30 | 525 | 60% | 50% |
+| heavyweight | 50x50 | 1393 | 56.12% | 40% |
+| marathon | 100x100 | 3626 | 37% | 30% |
+
 ### 5. Hamiltonian Cycle (planned)
 A path that visits every cell on the board exactly once. When all other strategies fail, the snake follows this cycle indefinitely — guaranteed never to die.
 
