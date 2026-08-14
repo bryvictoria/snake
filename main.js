@@ -4,7 +4,7 @@ const messageBox = document.getElementById('message')
 function main(){
 
     window.debugger = {
-        size:10000,
+        size:100,
         data: [],
         index:0,
         log(l){
@@ -16,10 +16,7 @@ function main(){
             return this.data
         },
         debug(){
-            
-            for(let i in this.data){
-                console.log(this.data[i])
-            }
+
         }
 
     }

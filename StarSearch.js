@@ -36,11 +36,6 @@ export default class StarSearch extends SearchAlgorithm{
         this.markings = [];
         this.ctr = 0
 
-        
-        //window.debugger.log('A*')
-        //window.debugger.log('goal:'+JSON.stringify(this.goal))
-        //window.debugger.log('body:'+JSON.stringify(this.obstacles))
-        //window.debugger.log('nodes:'+JSON.stringify(this.nodes))
         window.debugger.log(' A* goal:'+JSON.stringify(this.goal)+' body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
@@ -51,12 +46,10 @@ export default class StarSearch extends SearchAlgorithm{
             const posId = this.pq.dequeue()
             const node = this.nodes[posId]
 
-            //window.debugger.log(node)
             if(this.collides([node.x,node.y],this.goal)){
                 
                 this._goalFound = true
                 goalIndex = posId
-                //////window.debugger.log('goal found, generate path',goalIndex);
                 break;
             }
 
@@ -103,8 +96,8 @@ export default class StarSearch extends SearchAlgorithm{
             
 
         }
-        //window.debugger.log('this.nodes:'+JSON.stringify(this.nodes))
 
+        
         if(goalIndex != null){
             this.path = []
             let parentIndex = goalIndex
@@ -120,18 +113,14 @@ export default class StarSearch extends SearchAlgorithm{
 
             this.path = this.path.reverse()
         }
-        //window.debugger.log('goal reached:'+this._goalFound)
-        //window.debugger.log('path length:'+JSON.stringify(this.path))
         window.debugger.log('goal reached:'+this._goalFound)
-        window.debugger.log('path length:'+JSON.stringify(this.path))
-        //window.debugger.log('nodes touched: '+JSON.stringify(this.nodes.filter(i => i != null).length))
+        window.debugger.log('path:'+JSON.stringify(this.path))
         return this.path
     }
     enqueueNode(node){
         let posId = this._key([node.x,node.y])
         this.nodes[posId] = node
         this.pq.enqueue(posId,node.f)
-       // window.debugger.log([node.x,node.y,node.f])
 
     }
     computeHueristics(pos){

@@ -82,9 +82,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         if(this.anchor === null)
             this.anchor = this.goal
     
-    //    window.debugger.log('DFS-')
-    //    window.debugger.log('goal:'+JSON.stringify(this.goal))
-    //    window.debugger.log('head:'+JSON.stringify(this.start))
         window.debugger.log('DFS goal:'+JSON.stringify(this.goal) +' body:'+JSON.stringify(this.shadow))
         
         try{
@@ -93,16 +90,11 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 
             }
         } catch(e){
-            //window.debugger.log(e.message)
+            window.debugger.log(e.message)
         }
 
         window.debugger.log('goal reached:'+this._goalFound)
-        window.debugger.log('max coiling:'+this.maxCoiling)
         window.debugger.log('path:'+this.path.length+JSON.stringify(this.path))
-        window.debugger.log('path length:'+this.path.length)
-        window.debugger.log('depth:'+JSON.stringify(this.depth))
-        window.debugger.log('ctr:'+JSON.stringify(this.ctr))
-        window.debugger.log('forward:'+JSON.stringify(this.forwardCtr))
 
         return this.path
 
@@ -184,7 +176,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
             if(this.ctr > this.maxIterations)
                 break;
-            ////window.debugger.log(this.bounded , this.path.length , this.cap)
+
             if(this.bounded && this.path.length > this.cap){
                 this._capReached = true;
                 break;
@@ -193,7 +185,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
             let node = this.nodes[i]
 
             if(this.collides(node,this.goal) || this.collides(node,this.anchor)){
-                //console.log("this collided:",node,this.goal,this.anchor)
                 this._goalFound = true;
                 break;
             }
@@ -223,7 +214,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 }
 
             } else{
-                ////window.debugger.log('backtrack');
                 neighborNodes = this.neighbors.pop()
             }
             
@@ -243,7 +233,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     neighborsF[l] = gh
 
                 }
-                //console.log(JSON.stringify(neighborsF)+" NODE: "+JSON.stringify(node)+" NODES: "+JSON.stringify(neighborNodes))
+
                 let nIndex = 0
                 if(!this.bounded){
                     
@@ -281,10 +271,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 this.shadow.push(firstNeighbor)
                 const removedSet = this.shadow.shift()
 
-                
-
-        //        //window.debugger.log(this.ctr+':'+`[${firstNeighbor[0]},${firstNeighbor[1]}]`+':'+JSON.stringify(this.shadow))
-
                 this.shadowSet.add(firstNeighbor[0]+','+firstNeighbor[1])
                 this.shadowSet.delete(removedSet[0]+','+removedSet[1])
 
@@ -303,7 +289,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
                 let backNode = null
                 let backNodeIndex = this.path.length - this.shadow.length - 2
-        //        //window.debugger.log('backtrack?',backNodeIndex,backNode);
                 
                 if(backNodeIndex < 0){
                     backNodeIndex = this.chain.length - (this.shadow.length - this.path.length + 2)
@@ -312,17 +297,12 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                     backNode = this.path[backNodeIndex]
                 }
 
-                
-
-        //        //window.debugger.log('backtrack??',backNodeIndex,backNode);
                 if(backNode){
                     this.shadow.unshift(backNode)
                     this.shadowSet.add(backNode[0]+','+backNode[1])
                 }
                 this.shadowSet.delete(removedSet[0]+','+removedSet[1])
                 
-        //        //window.debugger.log("<:"+this.ctr)
-
                 const removed = this.path.pop()
                 this.pathSet.delete(removed[0]+','+removed[1])
 

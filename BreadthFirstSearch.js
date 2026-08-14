@@ -42,10 +42,6 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
         this.markings = [];
         this.ctr = 0
 
-        
-        //window.debugger.log('BFS')
-        //window.debugger.log('goal:'+JSON.stringify(this.goal))
-        //window.debugger.log('head:'+JSON.stringify(this.start))
         window.debugger.log('BFS goal:'+JSON.stringify(this.goal)+' body:'+JSON.stringify(this.obstacles))
         
         const tileSize = this.board.tileSize
@@ -124,7 +120,7 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
 
         window.debugger.log('goal reached:'+this._goalFound)
         window.debugger.log('path found:'+JSON.stringify(this.path))
-        //window.debugger.log('nodes touched:'+this.nodes.filter(i => i != null).length)//+' - '+JSON.stringify(this.nodes.filter(i => i != null)))
+        
         return this.path
     }
 

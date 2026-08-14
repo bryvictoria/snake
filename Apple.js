@@ -10,9 +10,16 @@ export default class Apple extends GameObject{
         let randomPos = null 
         let excludePositionStr = excludePositions.map(i => JSON.stringify(i))
         excludePositionStr.push(JSON.stringify(this.position))
+        let stopper = 0
         do{
+            
             randomPos = [this.board.tileSize * Math.floor(Math.random() * this.board.width),this.board.tileSize * Math.floor(Math.random() * this.board.width)]
-        } while(excludePositionStr.includes(JSON.stringify(randomPos)));
+
+        } while( excludePositionStr.includes(JSON.stringify(randomPos)) && stopper++ < this.board.size);
+        
+        if(stopper >= this.board.size){
+            randomPos = [this.board.area,this.board.area]
+        }
         this.position = randomPos
     }
 

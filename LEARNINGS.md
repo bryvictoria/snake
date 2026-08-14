@@ -141,6 +141,64 @@ My version of DFS, however, turned out to be a **legitimate variant** of the sta
 
 ---
 
+## Debugging War Stories
+
+Three bugs that were hard to find precisely because each symptom pointed away from its real cause — kept here as ready-to-tell stories, not just fixes.
+
+### 1. Redraw cost scaling with score caused a frame-rate collapse near score ~400
+
+**Symptom:** smooth from score 0–40, then a slowdown that felt exponential rather than linear — but `tick()` execution time and `generatePath()` time both measured near-zero, so the obvious suspects were clean.
+
+**Root cause:** two unrelated-looking costs both scaled with the snake's chain length (`= score + 10`):
+- A debug overlay was redrawing every visited search tile every tick via `colorTile()` (`beginPath` + `fillRect` + `stroke`, ~0.01ms/call). More chain length meant more tiles drawn.
+- The game loop runs on `setInterval`, clamped by the browser to a ~4ms floor regardless of the requested speed.
+
+Solving `(score + 10) tiles × 0.01ms ≈ 4ms tick budget` gives `score ≈ 390` — almost exactly where the slowdown started. Below that, the draw fit inside a tick; above it, each tick took longer to draw than the interval allowed, so ticks began backing up — and by the time a backlogged tick ran, the chain had grown even longer. That compounding backlog, not a steadily rising cost, is what made it *feel* exponential. A second cost stacked on top: unconditional `console.log`/`JSON.stringify` of the full chain and path on every `generatePath()` call, multiplied by however many times `directHunt()` runs per step.
+
+**Fix:** removed the per-tile debug redraw and all console logging from the hot path. Verified smooth pacing well past score 1000 afterward.
+
+**Lesson:** profile the actual bottleneck, not the obvious one — the game logic and pathfinding were both innocent; the cost was in incidental debug/render code riding along on every frame.
+
+### 2. A path proven safe at generation time can become unsafe after the snake grows
+
+**Symptom:** intermittent head-on collision with the snake's own tail, only after a specific sequence — eating an apple right after following a survival/look-ahead path.
+
+**Root cause:** `directHunt()` simulates eating the apple, then runs a BFS look-ahead to check the tail is still reachable afterward. If head and tail land **adjacent** in that simulation, the look-ahead trivially "succeeds" — an adjacent tile is always reachable. That success gets cached (`#tailTestFallbackPath`) as a fallback for later. But by the time it's replayed, the snake may have grown from apples eaten in between, so a path computed for the old, shorter body walks the head straight into the new tail.
+
+**Fix:** treat a look-ahead path of length exactly 1 (head/tail adjacent) as a failure, not a cacheable success:
+```js
+if(lookAhead.path.length === 1){
+    lookAhead.reached = false
+    this.#tailTestFallbackPath = []
+} else {
+    this.#tailTestFallbackPath = lookAhead.path.concat(...)
+}
+```
+
+**Lesson:** a safety check computed once can silently expire. Anything cached from a simulation has to account for what changes in the real world between when it was computed and when it's replayed.
+
+### 3. The defrag/cleanup path could route the snake into a dead end of its own making
+
+**Symptom:** deaths specifically while in `CLEANUP`/`DEFRAGGING` mode — the fallback meant to rescue the snake was the thing trapping it.
+
+**Root cause:** `setCleanUp()` generates a path via a capped, goal-less DFS that just coils into whatever open space exists. That path was accepted as-is — valid (obeys obstacles, reaches its endpoint) was never checked against safe (leaves the tail reachable afterward).
+
+**Fix:** after generating the cleanup path, simulate walking progressively shorter prefixes of it, and after each one check whether the tail is still reachable; trim back until it lands somewhere safe:
+```js
+let isTrap = true
+do{
+    this.#simulationSnake.setPosition(mergedPath.slice((currentEnd-len),currentEnd))
+    const targetTail = this.#simulationSnake.chain[this.#simulationSnake.chain.length -1].position
+    this.#simulationSnake.chain.pop()
+    const lookAhead = this.#pathFinder.getBreadthPath(this.#simulationSnake.chain,targetTail)
+    if(lookAhead.reached) isTrap = false
+}while(currentEnd-- > len && isTrap)
+```
+
+**Lesson:** a pathfinding result being valid doesn't mean it's safe — those are separate properties, and each needs its own check.
+
+---
+
 ## General Principles
 
 - **Pre-allocation beats dynamic allocation** — allocate once outside the hot loop, reuse every call.

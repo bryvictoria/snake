@@ -1,11 +1,13 @@
 import StarSearch  from './StarSearch.js'
 import BreadthFirstSearch  from './BreadthFirstSearch.js'
 import DepthFirstSearch  from './DepthFirstSearch.js'
+import Hamiltonian from './Hamiltonian.js'
 
 export default class PathManager{
     #starSearch
     #dfSearch
     #bfSearch
+    #hamiltonian
     #board
     ctx
     constructor(){
@@ -16,18 +18,31 @@ export default class PathManager{
         this.#starSearch = new StarSearch()
         this.#bfSearch = new BreadthFirstSearch()
         this.#dfSearch = new DepthFirstSearch()
+        this.#hamiltonian = new Hamiltonian()
 
         
 
         
     }
+
 
     setBoard(board){
         this.#starSearch.setBoard(board)
         this.#dfSearch.setBoard(board)
         this.#bfSearch.setBoard(board)
+        this.#hamiltonian.setBoard(board)
         this.#board = board
     }
+
+    getHamiltonianMove(state){
+        
+        if(!this.#hamiltonian.hasPath()){
+            // this path finder must decide which pattern to do cause its the path finder. if later on implemented random, maze, whirlpool, or burdpeouten pattern
+            this.#hamiltonian.generateCombPath()
+        }
+        return this.#hamiltonian.getPathToTarget(state.snake.chain.map(i => i.position),state.apple.position)
+    }
+
     getHuntPath(state){
         this.#starSearch.setTarget(state.apple)
         this.#starSearch.setChain(state.snake.chain)
@@ -35,7 +50,6 @@ export default class PathManager{
         let path = this.#starSearch.generatePath()
         
         let endTime = performance.now()
-        //window.debugger.log('Time:'+(endTime-startTime)+'ms')
 
         return path
     }
@@ -107,10 +121,11 @@ export default class PathManager{
         return path
     }
     draw(ctx){
+
         this.#starSearch.draw(this.ctx)
         this.#bfSearch.draw(this.ctx)
         this.#dfSearch.draw(this.ctx)
-
+        this.#hamiltonian.draw(this.ctx)
     }
 
 }

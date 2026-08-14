@@ -1,8 +1,8 @@
-export const STRATEGIES = {GREEDYHUNT:1,REACTIVE_SURVIVAL:2,PROACTIVE_SURVIVAL:3,DEFRAGGING:4}
+export const STRATEGIES = {GREEDYHUNT:1,REACTIVE_SURVIVAL:2,PROACTIVE_SURVIVAL:3,DEFRAGGING:4,HAMILTONIAN:5}
 export const STRATEGYNAMES = Object.fromEntries(
     Object.entries(STRATEGIES).map(([name, value]) => [value, name])
 )
-export const MODES = {HUNTING:1,TAILTEST:2,SURVIVING:3,CLEANUP:4,HEADTAIL_COLLISION:5}
+export const MODES = {HUNTING:1,TAILTEST:2,SURVIVING:3,CLEANUP:4,HEADTAIL_COLLISION:5,SHORTCUT:6,TRACE:7,TRANSITION:8}
 export const MODENAMES = Object.fromEntries(
     Object.entries(MODES).map(([name, value]) => [value, name])
 )
@@ -22,6 +22,8 @@ export default class StrategyManager{
     #isApplePathShorter = false
     #isApplePathChecked = false
     #tailTestFallbackPath 
+
+    
     board = {width:100,height:100,tileSize:6,area: 600}
 
     constructor(){
@@ -83,7 +85,6 @@ export default class StrategyManager{
         
         
         let huntResult = this.#pathFinder.getStarPath(state.snake.chain,state.apple.position)
-        //let huntResult = this.#pathFinder.getShortestPath(state.snake.chain,state.apple.position)
         
         window.debugger.log('huntResult:'+JSON.stringify(huntResult))
         huntResult.lookAheadFail = false
@@ -118,11 +119,9 @@ export default class StrategyManager{
             if(lookAhead.reached){
 
                 if(lookAhead.path.length === 1){
-                    console.log("TAIL TEST PASSED BUT HEAD-TAIL IS ADJACENT SO FAIL IT")
                     lookAhead.reached = false
                     this.#tailTestFallbackPath = []
-                //    huntResult.headTailCollide = true
-                //    console.log('COLIDE:'+JSON.stringify(lookAhead.path))
+
                 } else {
                     this.#tailTestFallbackPath = lookAhead.path.concat(this.#simulationSnake.chain.map(i => i.position).reverse())
                     window.debugger.log("lookAhead:"+JSON.stringify(lookAhead.path))
@@ -232,8 +231,6 @@ export default class StrategyManager{
         let isTrap = true
         do{
             
-            //console.log('slice:'+(currentEnd-len)+','+currentEnd+' : '+len +' - '+mergedPath.slice((currentEnd-len),currentEnd).length)
-            
             this.#simulationSnake.setPosition(mergedPath.slice((currentEnd-len),currentEnd))
             const targetTail = this.#simulationSnake.chain[this.#simulationSnake.chain.length -1].position
             
@@ -247,7 +244,6 @@ export default class StrategyManager{
 
         }while(currentEnd-- > len && isTrap)
        
-        //console.log("slice  to:"+0+' to '+(currentEnd-len)+' from:'+cleanUpPath.length)
         return cleanUpPath.slice(0,currentEnd-len)
     }
 
@@ -255,19 +251,32 @@ export default class StrategyManager{
         this.#isApplePathShorter = false
         this.#isApplePathChecked = false
     }
+    transitionCount = 0
     getNextMove(state){
         
         
-        window.debugger.log("getNextMove strategy:"+STRATEGYNAMES[state.strategy] +" mode:" + MODENAMES[state.mode]+" score:" + state.score + " snake:"+JSON.stringify(state.snake.chain.map(i=>i.position)))
+        console.log("getNextMove strategy:"+STRATEGYNAMES[state.strategy] +" mode:" + MODENAMES[state.mode]+" score:" + state.score + " C:"+this.board.cleanup )
         
-        //this.#tailTestFallbackPath = []
-
         let path = []
         let survivalPathSteps = []
 
         let snakeLength = state.snake.chain.length
         
-        if(state.strategy == STRATEGIES.GREEDYHUNT && state.score >= this.#cleanupFrequency && ((state.score % this.#cleanupFrequency) == 0)){
+        if(state.strategy == STRATEGIES.HAMILTONIAN){
+            
+            if(state.mode == MODES.TRANSITION){
+                path = this.setCleanUp(state)
+                state.mode == MODES.TRACE
+            } else {
+
+                path = this.#pathFinder.getHamiltonianMove(state)
+            }
+
+
+
+
+
+        } else if(state.strategy == STRATEGIES.GREEDYHUNT && state.score >= this.board.cleanup && ((state.score % this.board.cleanup) == 0)){
 
             window.debugger.log('MODE:CLEANUP BY FREQ')
             this.#tailTestFallbackPath = []
@@ -323,17 +332,6 @@ export default class StrategyManager{
                     }
                 }
 
-                if(headTailCollide){
-                    console.log('CLEAR ALL AND RESET HERE!')
-                }
-/*
-                if(lookAheadFail){
-                    window.debugger.log('MODE:ITS A TRAP!')
-                    path = []
-                    state.strategy = STRATEGIES.PROACTIVE_SURVIVAL
-                    state.mode = MODES.TAILTEST
-                }
-*/
             }else  if(state.mode == MODES.TAILTEST){
                 
                 window.debugger.log('MODE:TAILTEST FAILED')
@@ -368,6 +366,7 @@ export default class StrategyManager{
     setBoard(board){
         this.#pathFinder.setBoard(board)
         this.#simulationSnake.setBoard(this.board)
+        this.board = board
     }
 
 
