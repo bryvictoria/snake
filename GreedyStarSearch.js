@@ -44,18 +44,11 @@ export default class GreedyStarSearch extends SearchAlgorithm{
         this.markings = [];
         this.ctr = 0
 
-        console.log('A*')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
-        
         while(this.nodes.length > 0 && !this._goalFound){
             this.searchNodes();
-            
+
         }
 
-        console.log('goal reached:'+this._goalFound)
-        console.log('path:'+JSON.stringify(this.path))
         return this.path
     }
 

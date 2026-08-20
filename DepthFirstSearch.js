@@ -9,35 +9,41 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     nodes = null
     visitedNodes = new Set()
     goal = null
+    anchor = null
+    shadow = []
     obstacles = []
     start = null
     path = []
     pathSet = new Set()
+    shadowSet = new Set()
     obstacleSet = new Set()
     nudge = true
+
+    reverseDirection = false
     
     ctr  = 0
     forwardCtr = 0
     maxIterations = 10000
     maxCoiling = 200
 
+    _capReached = false
     allDirections = [];
 
     chainPos = []
     
-    draw(){
+    draw(ctx){
 
         const size = this.board.tileSize;
 
-        this.ctx.stroke();
+        ctx.stroke();
         for(let mark of this.path){
-            this.colorTile(...mark,'yellow')
+            this.colorTile(ctx,...mark,'yellow')
         }
 
-        if(this.obstacles)
-        for(let mark of this.obstacles){
+        if(this.shadow)
+        for(let mark of this.shadow){
             if(mark){
-                this.colorTile(...mark,'red')
+                this.colorTile(ctx,...mark,'red')
             }
         }
 
@@ -46,9 +52,11 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     }
 
     
-
+    setAnchor(anchor){
+        this.anchor = [...this.anchor.position]
+    }
     
-
+    stopper
     generatePath(){
 
 
@@ -56,57 +64,52 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
         const [head,...body] = this.chain
         this.start = [...head.position]
-        this.obstacles = this.chain.map(i => i.position).reverse()
+        this.shadow = this.chain.map(i => i.position).reverse()
         this.chainPos = this.chain.map(i => i.position).reverse()
-        this.obstacleSet = new Set(this.obstacles.map(i => i[0]+','+i[1]))
+        this.shadowSet = new Set(this.shadow.map(i => i[0]+','+i[1]))
+        //this.obstacleSet = new Set()
 
         this.goal = [...this._target.position]
         this._goalFound = false
-        
+        this._capReached = false
+        this.stopper = 0
         this.nodes = [this.start]
         this.visitedNodes = new Set()
         this.path = []
         this.pathSet = new Set();
 
+        this.depth = 0
         this.ctr = 0
         this.forwardCtr = 0
 
-        this.anchor = this.goal
-        
-
-        console.log('DFS-')
-        console.log('goal:'+JSON.stringify(this.goal))
-        console.log('head:'+JSON.stringify(this.start))
-        console.log('body:'+JSON.stringify(this.obstacles))
+        if(this.anchor === null)
+            this.anchor = this.goal
+    
+        window.debugger.log('DFS goal:'+JSON.stringify(this.goal) +' body:'+JSON.stringify(this.shadow))
         
         try{
-            while(this.nodes.length > 0 && !this._goalFound){
+            while(this.nodes.length > 0 && (!this._goalFound || !this._capReached)){
                 this.searchNodes()
                 
             }
         } catch(e){
-            //console.log(e.message)
+            window.debugger.log(e.message)
         }
 
-        console.log('goal reached:'+this._goalFound)
-    //    //console.log('max coiling:'+this.maxCoiling)
-        console.log('path:'+this.path.length+JSON.stringify(this.path))
-    //    //console.log('path length:'+this.path.length)
-    //    //console.log('depth:'+JSON.stringify(this.depth))
-    //    //console.log('ctr:'+JSON.stringify(this.ctr))
-    //    //console.log('forward:'+JSON.stringify(this.forwardCtr))
+        window.debugger.log('goal reached:'+this._goalFound)
+        window.debugger.log('path:'+this.path.length+JSON.stringify(this.path))
 
         return this.path
 
     }
 
-    colorTile(x,y,color){
+    colorTile(ctx,x,y,color){
 
     
-        this.ctx.beginPath()
-        this.ctx.fillStyle = color ?? 'brown'
-        this.ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
-        this.ctx.stroke()
+        ctx.beginPath()
+        ctx.fillStyle = color ?? 'brown'
+        ctx.fillRect(x + this.board.tileSize/2, y +this.board.tileSize/2 , this.board.tileSize/2, this.board.tileSize/2)
+        ctx.stroke()
         
     }
     
@@ -114,16 +117,19 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
     isPassable(node){
         if(
-            node[0] < 0 || node[0] >= 400 
+            node[0] < 0 || node[0] >= 600 
                 || 
-            node[1] < 0 || node[1] >= 400 
+            node[1] < 0 || node[1] >= 600 
         )
             return false
 
-        let isPassable = !this.obstacleSet.has(node[0]+','+node[1]);
+        let isPassable = !this.shadowSet.has(node[0]+','+node[1]);
 
         if(isPassable) 
             isPassable = !this.pathSet.has(node[0]+','+node[1])
+
+        if(isPassable) 
+            isPassable = !this.obstacleSet.has(node[0]+','+node[1])
 
         return isPassable
 
@@ -165,23 +171,28 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         const directionsMap = [
             [0, tileSize], [tileSize, 0], [0, -tileSize], [-1 * tileSize, 0]
         ];
+        
         let isBacktrack = false
         let neighborNodes = []
         let neighborNodesF = []
 
+        //console.log('D:'+this.depth+' CTR:'+this.ctr+' CAP:'+this.cap+' NODES:'+JSON.stringify(this.nodes))
         for(let i = 0; i < len ;i++){
 
             if(this.ctr > this.maxIterations)
                 break;
-            ////console.log(this.bounded , this.path.length , this.cap)
+
             if(this.bounded && this.path.length > this.cap){
-                this._goalFound = true;
+                //console.log('cap reached:'+JSON.stringify(this.path))
+                this._capReached = true;
                 break;
             }
 
             let node = this.nodes[i]
 
-            if(this.collides(node,this.goal)){
+            if(this.collides(node,this.goal) || this.collides(node,this.anchor)){
+                //console.log('goal reached!N:'+JSON.stringify(node)+' G:'+JSON.stringify(this.goal)+' A:'+JSON.stringify(this.anchor))
+                
                 this._goalFound = true;
                 break;
             }
@@ -211,7 +222,6 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 }
 
             } else{
-                ////console.log('backtrack');
                 neighborNodes = this.neighbors.pop()
             }
             
@@ -219,20 +229,24 @@ export default class DepthFirstSearch extends SearchAlgorithm{
 
             let firstNeighbor = null
 
+            let coilAway = true
+            if(this.path.length > this.maxCoiling)
+                coilAway = false
+
             if(neighborNodes.length){
                 let neighborsF = []
                 for(let l in neighborNodes){
 
-                    let gh = this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],this.anchor) * (this.nudge?1.0001:1))
+                    let gh = (this.computeDistance([neighborNodes[l][0],neighborNodes[l][1]],this.start)) + (this.computeManhattanDistance([neighborNodes[l][0],neighborNodes[l][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
                     neighborsF[l] = gh
 
                 }
+
                 let nIndex = 0
                 if(!this.bounded){
-                    let coilAway = true
+                    
 
-                    if(this.forwardCtr > this.maxCoiling)
-                        coilAway = false
+                    
 
                     nIndex = coilAway ? neighborsF.indexOf(Math.max(...neighborsF)) : neighborsF.indexOf(Math.min(...neighborsF))
 
@@ -242,7 +256,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                         neighborsF = []
                         for(let m in neighborNodes){
 
-                            let gh = this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start) + (this.computeDistance([neighborNodes[m][0],neighborNodes[m][1]],this.anchor) * (this.nudge?1.0001:1))
+                            let gh = (this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],this.start)) + (this.computeManhattanDistance([neighborNodes[m][0],neighborNodes[m][1]],(coilAway?this.anchor:this.goal)) * (this.nudge?1.0001:1))
                             neighborsF[m] = gh
 
                         }
@@ -251,7 +265,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 } 
                 firstNeighbor = neighborNodes[nIndex]
             }
-            
+            //console.log('NODE:'+node+' NEIGHBOR:'+firstNeighbor+ ' V:'+ JSON.stringify([...this.visitedNodes])+ ' P:'+ JSON.stringify([...this.pathSet])+ ' S:'+ JSON.stringify([...this.shadowSet]))
             if(firstNeighbor != null){
 
                 this.neighbors.push(neighborNodes)
@@ -262,15 +276,11 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 this.path.push(firstNeighbor)
                 this.pathSet.add(firstNeighbor[0]+','+firstNeighbor[1])
 
-                this.obstacles.push(firstNeighbor)
-                const removedSet = this.obstacles.shift()
+                this.shadow.push(firstNeighbor)
+                const removedSet = this.shadow.shift()
 
-                
-
-        //        //console.log(this.ctr+':'+`[${firstNeighbor[0]},${firstNeighbor[1]}]`+':'+JSON.stringify(this.obstacles))
-
-                this.obstacleSet.add(firstNeighbor[0]+','+firstNeighbor[1])
-                this.obstacleSet.delete(removedSet[0]+','+removedSet[1])
+                this.shadowSet.add(firstNeighbor[0]+','+firstNeighbor[1])
+                this.shadowSet.delete(removedSet[0]+','+removedSet[1])
 
                 
                 this.depth++
@@ -283,30 +293,24 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 this.depth--
                 this.neighbors.pop()
                 
-                const removedSet = this.obstacles.pop()
+                const removedSet = this.shadow.pop()
 
                 let backNode = null
-                let backNodeIndex = this.path.length - this.obstacles.length - 2
-        //        //console.log('backtrack?',backNodeIndex,backNode);
+                let backNodeIndex = this.path.length - this.shadow.length - 2
                 
                 if(backNodeIndex < 0){
-                    backNodeIndex = this.chain.length - (this.obstacles.length - this.path.length + 2)
+                    backNodeIndex = this.chain.length - (this.shadow.length - this.path.length + 2)
                     backNode = this.chainPos[backNodeIndex]
                 }else{
                     backNode = this.path[backNodeIndex]
                 }
 
-                
-
-        //        //console.log('backtrack??',backNodeIndex,backNode);
                 if(backNode){
-                    this.obstacles.unshift(backNode)
-                    this.obstacleSet.add(backNode[0]+','+backNode[1])
+                    this.shadow.unshift(backNode)
+                    this.shadowSet.add(backNode[0]+','+backNode[1])
                 }
-                this.obstacleSet.delete(removedSet[0]+','+removedSet[1])
+                this.shadowSet.delete(removedSet[0]+','+removedSet[1])
                 
-        //        //console.log("<:"+this.ctr)
-
                 const removed = this.path.pop()
                 this.pathSet.delete(removed[0]+','+removed[1])
 
@@ -322,21 +326,17 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         }
         
 
-
+        if(newNodes[0] == null && this.depth == 0 && this.stopper++ < 4){
+            newNodes = [this.start]
+        }
         this.nodes = newNodes
         this.ctr++
     
     }
 
     
-    setObstacle(){
-        this.obstacles = [];
-        if(this.path.length >= this.chain.length){
-            this.obstacles = this.path.slice( this.path.length - this.chain.length, this.path.length )
-        }else{
-            this.obstacles = [ ...this.path, ...this.chain.map(i=>i.position).slice( 0, this.chain.length - this.path.length ) ]
-        }
-        this.obstacleSet = new Set(this.obstacles.map(i => i[0]+','+i[1]))
+    setObstacle(obstacles){
+        this.obstacleSet = new Set(obstacles.map(i => i[0]+','+i[1]))
     }
     
 
