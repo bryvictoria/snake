@@ -1,6 +1,8 @@
 import GameEngine from './GameEngine.js'
 
 const messageBox = document.getElementById('message')
+const gameEngine = new GameEngine()
+
 function main(){
 
     window.debugger = {
@@ -21,16 +23,21 @@ function main(){
 
     }
 
-    const gameEngine = new GameEngine()
-    
     gameEngine.on('message', (msg) => setGameMessage(msg))
-    gameEngine.start()
-
-    document.getElementById('play-button').addEventListener("click",() => gameEngine.start())
-    document.getElementById('pause-button').addEventListener("click",() => gameEngine.stop())
-    document.getElementById('tick-button').addEventListener("click",() => gameEngine.tick())
-
     
+    document.getElementById('play-button').addEventListener("click",startGame)
+    
+    
+
+}
+
+function startGame(){
+    
+
+    let board = document.querySelector('input[name=level]:checked').value
+    let hamiltonian = document.querySelector('input[name=hamiltonian]').checked
+
+    gameEngine.start(board,hamiltonian)
 
 }
 

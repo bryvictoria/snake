@@ -15,8 +15,18 @@
 			
 		</canvas>
 		<p id="message"></p>
+		<div style="padding:2px; border: solid 1px lightgray;width:595px; margin-bottom:5px;">
+			<input type="radio" name="level" value="warmup" id="level1" /> <label for="level1" >10x10</label> 
+			<input type="radio" name="level" value="classic" checked id="level2" /> <label for="level2" >20x20</label> 
+			<input type="radio" name="level" value="dense" id="level3" /> <label for="level3" >30x30</label> 
+			<input type="radio" name="level" value="heavyweight" id="level4" /> <label for="level4" >50x50</label> 
+			<input type="radio" name="level" value="marathon" id="level5" /> <label for="level5" >100x100</label> 
+			<br />
+			<input type="checkbox" name="hamiltonian" value="1" /> <label for="hamiltonian" >Hamiltonian Loop</label> 
+			<br />
+			
+		</div>
+
 		<button id="play-button">PLAY</button>
-		<button id="pause-button">PAUSE</button>
-		<button id="tick-button">TICK</button>
 	</body>
 </html>

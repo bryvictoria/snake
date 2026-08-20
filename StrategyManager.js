@@ -22,6 +22,8 @@ export default class StrategyManager{
     #isApplePathShorter = false
     #isApplePathChecked = false
     #tailTestFallbackPath 
+    #transitionCleanupCount = 0
+    #topPath
 
     
     board = {width:100,height:100,tileSize:6,area: 600}
@@ -30,6 +32,18 @@ export default class StrategyManager{
         this.#pathFinder = new PathFinder()
         this.#simulationSnake = new Snake()
         
+    }
+
+    reset(){
+        this.#simulationSnake = new Snake()
+        this.#survivalPath = []
+        this.#survivalCounter = false
+        this.#cleanupFrequency = 25
+        this.#isApplePathShorter = false
+        this.#isApplePathChecked = false
+        this.#tailTestFallbackPath = []
+        this.#transitionCleanupCount = 0
+        this.#topPath = []
     }
 
     preCheckReachability(state){
@@ -209,9 +223,64 @@ export default class StrategyManager{
         return path
     }
 
+    getTransitionPath(state){
+        this.#topPath = []
+        let cleanUpPath = this.#pathFinder.getTransitionPath(state.snake,this.#topPath,50)
+
+        console.log('G: '+JSON.stringify(state.apple.position)+' DFS:' + JSON.stringify(cleanUpPath))
+        
+        let appleIndex = cleanUpPath.map(i => JSON.stringify(i)).findIndex(i => i == JSON.stringify(state.apple.position))
+        window.debugger.log('appleIndex',appleIndex,JSON.stringify(cleanUpPath))
+        if(appleIndex >= 0){
+            
+            cleanUpPath =  cleanUpPath.slice(0, appleIndex + 1)
+            this.transitionCount--
+        }
+
+        let len = state.snake.chain.length
+        let cplen = cleanUpPath.length
+
+        if(cplen > 1){
+            let mergedPath = state.snake.chain.map(i => i.position).reverse().concat(cleanUpPath)
+            let currentEnd = mergedPath.length
+
+            
+
+            let isTrap = true
+
+            do{
+                
+                this.#simulationSnake.setPosition(mergedPath.slice((currentEnd-len),currentEnd))
+                const targetTail = this.#simulationSnake.chain[this.#simulationSnake.chain.length -1].position
+                
+                this.#simulationSnake.chain.pop()
+                
+                
+
+                const floodFill = this.#pathFinder.getFloodFill(this.#simulationSnake.chain,this.#simulationSnake.chain.length)
+                
+                if(floodFill.nodes >= this.#simulationSnake.chain.length){
+                    isTrap = false
+                }else{
+                    const lookAhead = this.#pathFinder.getBreadthPath(this.#simulationSnake.chain,targetTail)
+                    if(lookAhead.reached){
+                        isTrap = false
+                    }
+                }
+
+            }while(currentEnd-- > len && isTrap)
+            
+            return cleanUpPath.slice(0,currentEnd-len)
+        }else{
+            return cleanUpPath
+        }
+        
+    }
     setCleanUp(state){
+
         state.strategy = STRATEGIES.DEFRAGGING
         state.mode = MODES.CLEANUP
+
         let cleanUpPath = this.#pathFinder.getCleanupPath(state.snake)
 
         
@@ -252,10 +321,9 @@ export default class StrategyManager{
         this.#isApplePathChecked = false
     }
     transitionCount = 0
+    transitionCap = 0
+    
     getNextMove(state){
-        
-        
-        console.log("getNextMove strategy:"+STRATEGYNAMES[state.strategy] +" mode:" + MODENAMES[state.mode]+" score:" + state.score + " C:"+this.board.cleanup )
         
         let path = []
         let survivalPathSteps = []
@@ -265,11 +333,50 @@ export default class StrategyManager{
         if(state.strategy == STRATEGIES.HAMILTONIAN){
             
             if(state.mode == MODES.TRANSITION){
-                path = this.setCleanUp(state)
-                state.mode == MODES.TRACE
-            } else {
 
-                path = this.#pathFinder.getHamiltonianMove(state)
+                if(this.transitionCount++ > 2){
+                    
+                    let pos = this.hamiltonianPath = this.#pathFinder.generateHamiltonianPath()
+                    let seq = this.#pathFinder.getHamiltonianSequence()
+
+                    let snakeSequence = []
+                    
+                    for(let i = 0; i< state.snake.chain.length; i++){
+                        let chainPos = state.snake.chain[i].position
+
+                        let posIndex = seq.findIndex(i => (i[0] == chainPos[0] && i[1] == chainPos[1]))
+
+                        snakeSequence.push(posIndex)
+
+                    }
+
+                    let maxChain = Math.max(...snakeSequence)
+                    let target = seq[maxChain]
+
+                    let transPath = this.#pathFinder.getShortestPath(state.snake.chain,target)
+                    
+                    if(transPath.reached){
+                        path = transPath.path
+                    }
+
+                    this.transitionCap = state.snake.chain.length
+                    
+                    state.mode = MODES.TRACE
+
+                }else{
+                    path = this.getTransitionPath(state)
+                     
+                }
+                
+                
+            } else {
+                
+                if(this.transitionCap > 0){
+                    path = this.#pathFinder.getHamiltonianPath(state.snake.chain.map(i => i.position),state.apple.position)
+                    this.transitionCap -= path.length
+                } else {
+                    path = this.#pathFinder.getHamiltonianMove(state, false)
+                }
             }
 
 
@@ -367,6 +474,13 @@ export default class StrategyManager{
         this.#pathFinder.setBoard(board)
         this.#simulationSnake.setBoard(this.board)
         this.board = board
+
+        this.#topPath = []
+        let x =0,y=0
+        for(let i = 0; i < board.width; i++){
+            this.#topPath.push([x,y])
+            x += board.tileSize
+        }
     }
 
 

@@ -15,7 +15,9 @@ export default class Hamiltonian {
     setBoard(board){
         this.board = board
     }
-
+    getPosSequence(){
+        return this.#pos
+    }
     generateCombPath(){
         this.#path = [];
         let x =0,y=0, width = this.board.width,height = this.board.height,tileSize = this.board.tileSize
@@ -87,6 +89,10 @@ export default class Hamiltonian {
     }
 
     getPathToTarget(segments,target){
+
+        if(target == null)
+            return []
+        
         let seqpath = []
 
         let len = this.#path.length
@@ -100,6 +106,7 @@ export default class Hamiltonian {
 
         let headseq = this.#sequence[this._key(segments[0])]
         do{
+            
             let newMove = this.getNextMove()
             seqpath.push(newMove)
             this.#simulation.unshift(newMove)

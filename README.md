@@ -62,6 +62,18 @@ Phase 4 (A*/DFS/BFS survival strategy work) closed out with a per-board benchmar
 ### 5. Hamiltonian Cycle (planned)
 A path that visits every cell on the board exactly once. When all other strategies fail, the snake follows this cycle indefinitely — guaranteed never to die.
 
+## Future Improvements & Known Limitations
+
+Every benchmark run in 4.8 died the same way — trapped during `dfsCleanup`/`DEFRAGGING`. Three specific gaps in the strategy explain the ceiling:
+
+1. **Greedy hunt isn't time-aware.** A* checks whether a cell is occupied *now*, not whether it'll be occupied by the time the snake actually arrives there — causing unnecessary scattering. Fix: implement Time-Space A* for greedy hunt, where occupancy is checked against the specific time step of arrival.
+
+2. **Proactive survival's look-ahead doesn't check for enclosure.** The tail-test only verifies *a* path to the tail exists — not whether the resulting pocket of space is actually big enough to hold the snake's full body. Fix: add a flood-fill check on top of the tail-test — pass only if a BFS flood-fill shows enough free space for the snake's length, and a simulation of the snake moving through it actually reaches the tail.
+
+3. **Reactive survival is missing the tail-to-head retrace that proactive survival already has.** That retrace lets the snake safely loop back onto itself when re-approaching its own tail. Proactive survival applies it; reactive survival doesn't — and that asymmetry accounts for the death pattern above: the reactive path runs out and falls through to `dfsCleanup` instead of retracing, not because cleanup itself is flawed. Fix: extend the same tail-to-head retrace to the reactive survival path.
+
+Applying all three is expected to push consistency to roughly 80–90%.
+
 ## Controls
 
 | Key | Action |
@@ -105,11 +117,37 @@ Years later, I picked it up again — rewrote it for the browser, built a proper
 - [ ] Longest path stalling
 - [ ] Hamiltonian cycle fallback
 
+Here is the updated benchmark table including the **Min Board Coverage (%)** for each grid size:
+
+## Snake AI Benchmark Results
+
+| Grid Size | Max Board Capacity | Run Count | Min Score | Max Score | Avg Score | Min Coverage (%) | Avg Coverage (%) | Max Coverage (%) |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| **10 × 10** | 100 | 10 | 30 | 84 | 64.1 | **40.0%** | 73.3% | **94.0%** |
+| **20 × 20** | 400 | 1 | 315 | 315 | 315.0 | **79.3%** | 79.3% | **79.3%** |
+| **30 × 30** | 900 | 9 | 260 | 640 | 405.7 | **29.1%** | 45.3% | **71.3%** |
+| **50 × 50** | 2,500 | 7 | 575 | 1,850 | 1,306.1 | **23.1%** | 52.4% | **74.4%** |
+| **100 × 100** | 10,000 | 1 | 3,626 | 3,626 | 3,626.0 | **36.3%** | 36.3% | **36.3%** |
+
 New BenchMark
 10x10
 GAMEOVER! SCORE:80 CLEANUP | DEFRAGGING 82.0%
+GAMEOVER! SCORE:76 CLEANUP | DEFRAGGING 86.0%
+GAMEOVER! SCORE:66 CLEANUP | DEFRAGGING 76.0%
+GAMEOVER! SCORE:30 CLEANUP | DEFRAGGING 40.0%
+GAMEOVER! SCORE:45 CLEANUP | DEFRAGGING 55.0%
+GAMEOVER! SCORE:84 CLEANUP | DEFRAGGING 94.0%
+GAMEOVER! SCORE:66 CLEANUP | DEFRAGGING 76.0%
+GAMEOVER! SCORE:58 CLEANUP | DEFRAGGING 68.0%
+GAMEOVER! SCORE:66 CLEANUP | DEFRAGGING 76.0%
+GAMEOVER! SCORE:70 CLEANUP | DEFRAGGING 80.0%
+
 20x20
 GAMEOVER! SCORE:315 CLEANUP | DEFRAGGING 79.3%
+GAMEOVER! SCORE:358 CLEANUP | DEFRAGGING 91.8%
+GAMEOVER! SCORE:270 CLEANUP | DEFRAGGING 69.8%
+GAMEOVER! SCORE:300 CLEANUP | DEFRAGGING 77.3%
+
 30x30
 GAMEOVER! SCORE:380 CLEANUP | DEFRAGGING 42.4%
 GAMEOVER! SCORE:320 CLEANUP | DEFRAGGING 35.8%
@@ -128,3 +166,7 @@ GAMEOVER! SCORE:975 CLEANUP | DEFRAGGING 39.1%
 GAMEOVER! SCORE:1317 CLEANUP | DEFRAGGING 52.8%
 GAMEOVER! SCORE:1250 CLEANUP | DEFRAGGING 50.1%
 GAMEOVER! SCORE:1750 CLEANUP | DEFRAGGING 70.1%
+GAMEOVER! SCORE:1850 CLEANUP | DEFRAGGING 74.4%
+
+100x100
+GAMEOVER! SCORE:3626 CLEANUP | DEFRAGGING 36.3%

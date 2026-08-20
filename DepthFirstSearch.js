@@ -18,6 +18,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
     shadowSet = new Set()
     obstacleSet = new Set()
     nudge = true
+
+    reverseDirection = false
     
     ctr  = 0
     forwardCtr = 0
@@ -54,7 +56,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.anchor = [...this.anchor.position]
     }
     
-
+    stopper
     generatePath(){
 
 
@@ -65,17 +67,18 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         this.shadow = this.chain.map(i => i.position).reverse()
         this.chainPos = this.chain.map(i => i.position).reverse()
         this.shadowSet = new Set(this.shadow.map(i => i[0]+','+i[1]))
-        this.obstacleSet = new Set()
+        //this.obstacleSet = new Set()
 
         this.goal = [...this._target.position]
         this._goalFound = false
         this._capReached = false
-        
+        this.stopper = 0
         this.nodes = [this.start]
         this.visitedNodes = new Set()
         this.path = []
         this.pathSet = new Set();
 
+        this.depth = 0
         this.ctr = 0
         this.forwardCtr = 0
 
@@ -168,16 +171,19 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         const directionsMap = [
             [0, tileSize], [tileSize, 0], [0, -tileSize], [-1 * tileSize, 0]
         ];
+        
         let isBacktrack = false
         let neighborNodes = []
         let neighborNodesF = []
 
+        //console.log('D:'+this.depth+' CTR:'+this.ctr+' CAP:'+this.cap+' NODES:'+JSON.stringify(this.nodes))
         for(let i = 0; i < len ;i++){
 
             if(this.ctr > this.maxIterations)
                 break;
 
             if(this.bounded && this.path.length > this.cap){
+                //console.log('cap reached:'+JSON.stringify(this.path))
                 this._capReached = true;
                 break;
             }
@@ -185,6 +191,8 @@ export default class DepthFirstSearch extends SearchAlgorithm{
             let node = this.nodes[i]
 
             if(this.collides(node,this.goal) || this.collides(node,this.anchor)){
+                //console.log('goal reached!N:'+JSON.stringify(node)+' G:'+JSON.stringify(this.goal)+' A:'+JSON.stringify(this.anchor))
+                
                 this._goalFound = true;
                 break;
             }
@@ -222,7 +230,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
             let firstNeighbor = null
 
             let coilAway = true
-            if(this.forwardCtr > this.maxCoiling)
+            if(this.path.length > this.maxCoiling)
                 coilAway = false
 
             if(neighborNodes.length){
@@ -257,7 +265,7 @@ export default class DepthFirstSearch extends SearchAlgorithm{
                 } 
                 firstNeighbor = neighborNodes[nIndex]
             }
-            
+            //console.log('NODE:'+node+' NEIGHBOR:'+firstNeighbor+ ' V:'+ JSON.stringify([...this.visitedNodes])+ ' P:'+ JSON.stringify([...this.pathSet])+ ' S:'+ JSON.stringify([...this.shadowSet]))
             if(firstNeighbor != null){
 
                 this.neighbors.push(neighborNodes)
@@ -318,7 +326,9 @@ export default class DepthFirstSearch extends SearchAlgorithm{
         }
         
 
-
+        if(newNodes[0] == null && this.depth == 0 && this.stopper++ < 4){
+            newNodes = [this.start]
+        }
         this.nodes = newNodes
         this.ctr++
     

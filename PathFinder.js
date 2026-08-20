@@ -33,7 +33,14 @@ export default class PathManager{
         this.#hamiltonian.setBoard(board)
         this.#board = board
     }
+    generateHamiltonianPath(){
+        return this.#hamiltonian.generateCombPath()
+    }
+    getHamiltonianSequence(){
+        return this.#hamiltonian.getPosSequence()
+    }
 
+    
     getHamiltonianMove(state){
         
         if(!this.#hamiltonian.hasPath()){
@@ -41,6 +48,11 @@ export default class PathManager{
             this.#hamiltonian.generateCombPath()
         }
         return this.#hamiltonian.getPathToTarget(state.snake.chain.map(i => i.position),state.apple.position)
+    }
+
+    getHamiltonianPath(chain,target){
+        
+        return this.#hamiltonian.getApplePath(chain,target)
     }
 
     getHuntPath(state){
@@ -82,6 +94,15 @@ export default class PathManager{
         return this.#starSearch.computeManhattanDistance(from,to) === this.#board.tileSize
     }
 
+    getFloodFill(chain,max){
+        this.#bfSearch.setTarget({position:[-4,-4]})
+        this.#bfSearch.setChain(chain)
+        const path = this.#bfSearch.generatePath(max)
+        const reached = this.#bfSearch.isGoalFound()
+        const nodes = this.#bfSearch.getNodeCount()
+        return {path,reached,nodes}
+    }
+
     getBreadthPath(chain,goal){
         this.#bfSearch.setTarget({position:goal})
         this.#bfSearch.setChain(chain)
@@ -108,6 +129,21 @@ export default class PathManager{
         return {path,reached}
     }
 
+    getTransitionPath(snake,obstacle = [],cap){
+        
+        this.#dfSearch.setCap(snake.chain.length * 1)
+        this.#dfSearch.setChain(snake.chain)
+        this.#dfSearch.setTarget({position:[-4,300]})
+        this.#dfSearch.setAnchor({position:[-4,300]})
+        this.#dfSearch.setBounded(true)
+        this.#dfSearch.setMaxCoiling(10000)
+        this.#dfSearch.setObstacle(obstacle)
+        
+        let path = this.#dfSearch.generatePath()
+        this.#dfSearch.setBounded(false)
+
+        return path
+    }
     getCleanupPath(snake){
         
         this.#dfSearch.setCap(snake.chain.length * 1.5)

@@ -20,8 +20,11 @@ export default class BreadthFirstSearch extends SearchAlgorithm{
 
     q = new Queue()
 
+    cap = 0
 
-
+    setCap(cap){
+        this.cap = cap
+    }
     
     generatePath(max = null){
         this.resetTiles()

@@ -224,7 +224,7 @@ export default class Snake{
         for(let  i = 1; i < this.chainCount; i++) {
             if(this.chain[0].collidesWith(this.chain[i].position)){
                 collided = true
-                
+                console.log('head hits body',this.chain[i].position)
                 break
             }
         }
@@ -238,6 +238,7 @@ export default class Snake{
                 || 
             this.chain[0].position[1] < 0 || this.chain[0].position[1] >= 600 
         ){
+            console.log('head hits wall')
             return true
         }
     }

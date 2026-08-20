@@ -9,11 +9,11 @@ export const PHASENAMES = Object.fromEntries(
     Object.entries(PHASES).map(([name, value]) => [value, name])
 )
 export const BOARDS = {
-    'warmup':{width:10,height:10,tileSize:60,borderSize:5,speed:15,area: 600,threshold:50,cleanup:10},
-    'classic':{width:20,height:20,tileSize:30,borderSize:4,speed:4,area: 600,threshold:100,cleanup:15},
-    'dense':{width:30,height:30,tileSize:20,borderSize:2,speed:3,area: 600,threshold:100,cleanup:20},
-    'heavyweight':{width:50,height:50,tileSize:12,borderSize:2,speed:2,area: 600,threshold:100,cleanup:25},
-    'marathon':{width:100,height:100,tileSize:6,borderSize:1,speed:1,area: 600,threshold:100,cleanup:30},
+    'warmup':{width:10,height:10,tileSize:60,borderSize:5,speed:15,area: 600,threshold:40,cleanup:10},
+    'classic':{width:20,height:20,tileSize:30,borderSize:4,speed:4,area: 600,threshold:35,cleanup:15},
+    'dense':{width:30,height:30,tileSize:20,borderSize:2,speed:3,area: 600,threshold:30,cleanup:20},
+    'heavyweight':{width:50,height:50,tileSize:12,borderSize:2,speed:2,area: 600,threshold:25,cleanup:25},
+    'marathon':{width:100,height:100,tileSize:6,borderSize:1,speed:1,area: 600,threshold:20,cleanup:30},
 }
 
 export default class GameEngine extends EventEmit{
@@ -21,7 +21,7 @@ export default class GameEngine extends EventEmit{
     #state
     #renderer
     #strategist
-
+    #hamiltonian = false
     #interval = null
     #speed = 1
 
@@ -31,7 +31,7 @@ export default class GameEngine extends EventEmit{
         super()
         this.#board = BOARDS.warmup
         this.#state = {
-            snake: new Snake(10),
+            snake: new Snake(5),
             apple: new Apple(),
             score: 0,
             phase: PHASES.IDLE,
@@ -46,11 +46,7 @@ export default class GameEngine extends EventEmit{
     }
 
     tick(){
-
-        console.log(this.#state.snake.chain.length ,this.#board.size)
-        if(this.#state.snake.chain.length >= this.#board.size -1){
-            this.#state.phase = PHASES.FINISHED
-        } else if(this.#state.phase === PHASES.PLAYING){
+        if(this.#state.phase === PHASES.PLAYING){
             let snakeStatus = this.#state.snake.getStatus(this.#state.apple.getPosition())
             if(this.#state.snake.path.length == 0){
                 this.advance(snakeStatus === SNAKE_STATUSES.SCORED)
@@ -69,38 +65,35 @@ export default class GameEngine extends EventEmit{
 
     ctr = 0
     advance(scored = false){
-        
-        if(scored){
-            this.#state.score++
-            this.#state.occ = this.#state.snake.chain.length/(this.#board.width*this.#board.height) * 100
-            this.#state.snake.addChain()
-            this.spawnFood()
+        if(this.#state.apple.position == null){
+            this.#state.phase = PHASES.FINISHED
+        } else {
+            if(scored){
+                this.#state.score++
+                this.#state.snake.addChain()
+                this.#state.occ = this.#state.snake.chain.length/(this.#board.size) * 100
+                this.spawnFood()
 
+            }
+            
+            if(this.#hamiltonian && this.#state.occ == this.#board.threshold &&  this.#state.strategy != STRATEGIES.HAMILTONIAN){
+                this.#state.strategy = STRATEGIES.HAMILTONIAN
+                this.#state.mode = MODES.TRANSITION
+            }
+
+            let newPath
+            let stopper = 0
+            do{
+                newPath = this.#strategist.getNextMove(this.#state)
+
+            }while(newPath.length == 0 && stopper++ < 5)
+
+            this.#state.snake.setPath(newPath)
+            if(newPath.length == 0){
+                this.#state.phase = PHASES.GAMEOVER
+            }
+            
         }
-
-        
-
-        window.debugger.log('ADVANCE! ' + scored)
-
-        if(this.#state.occ >= this.#board.threshold){
-            this.#state.phase = PHASES.GAMEOVER
-            this.#state.strategy = STRATEGIES.HAMILTONIAN
-            this.#state.mode = MODES.TRANSITION
-        }
-
-        let newPath
-        let stopper = 0
-        do{
-            newPath = this.#strategist.getNextMove(this.#state)
-
-        }while(newPath.length == 0 && stopper++ < 5)
-
-        this.#state.snake.setPath(newPath)
-        if(newPath.length == 0){
-            this.#state.phase = PHASES.GAMEOVER
-        }
-        
-
         this.showGameStatus()
     }
     
@@ -115,13 +108,13 @@ export default class GameEngine extends EventEmit{
     }
 
     showGameStatus(){
-        this.emit('message', PHASENAMES[this.#state.phase]+'! SCORE:'+ this.#state.score +' '+ MODENAMES[this.#state.mode] +' | '+STRATEGYNAMES[this.#state.strategy] +'  '+this.#state.occ.toFixed(1)+'% ' )
+        this.emit('message', PHASENAMES[this.#state.phase]+'! SCORE:'+ this.#state.score +' '+ MODENAMES[this.#state.mode] +' | '+STRATEGYNAMES[this.#state.strategy] +'  '+Math.ceil(this.#state.occ)+'% ' )
     }
     reset(){
         this.#state.phase = PHASES.IDLE
         this.#state.score = 0
+        this.#state.occ = 0
 
-        
     }
     
     
@@ -131,12 +124,16 @@ export default class GameEngine extends EventEmit{
         clearInterval(this.interval)
     }
     
-    start(){
+    start(board,hamiltonian){
+        
         this.emit('message', 'Game Initialized!')
         this.reset()
+        this.setBoard(BOARDS[board])
+        this.#hamiltonian = hamiltonian
         this.#state.phase = PHASES.PLAYING
         this.#state.strategy =  STRATEGIES.GREEDYHUNT
         this.#state.mode =  MODES.HUNTING
+        this.#strategist.reset()
         this.spawnFood()
         
         this.advance()
@@ -145,7 +142,7 @@ export default class GameEngine extends EventEmit{
         //this.tick()
     }
     setBoard(board){
-        window.debugger.log('main')
+        
         board.size = board.width*board.height
         this.#state.snake.setBoard(board)
         this.#state.apple.setBoard(board)
@@ -153,10 +150,9 @@ export default class GameEngine extends EventEmit{
         this.#strategist.setBoard(board)
 
         this.#speed = board.speed
+        this.#state.apple.setPosition([0,0])
 
-        this.#state.snake.setPosition([[0,board.tileSize],[0,board.tileSize*2],[0,board.tileSize*3]])
         this.#state.snake.setDirections()
-        window.debugger.log(this.#state.snake.chain)
         this.#board = board
 
     }
